@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Control Presupuestario - Cruz Roja Dominicana</title>
+  <title>Sistema de Control Presupuestario - Cruz Roja Dominicana</title>
   <style>
     /* RESET BÁSICO */
     * {
@@ -68,6 +68,12 @@
       justify-content: space-between;
     }
 
+    .switches {
+      display: flex;
+      gap: 20px;
+      align-items: flex-end;
+    }
+
     .add-expense {
       display: flex;
       flex-wrap: wrap;
@@ -128,11 +134,6 @@
     button.btn:hover {
       background: #a02121;
       box-shadow: 0 6px 20px rgb(160 33 33 / 0.5);
-    }
-
-    /* SELECTOR DE MONEDA */
-    .currency-switch {
-      min-width: 170px;
     }
 
     /* RESUMEN */
@@ -328,48 +329,57 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>Sistema de Control Presupuestario</h1>
-      <p>Cruz Roja Dominicana - Proyecto Ready 360</p>
-      <p>Software presupuestario hecho por Jesus Dawarly Ramirez (Administrador)</p>
+      <h1 data-i18n="title">Sistema de Control Presupuestario</h1>
+      <p data-i18n="subtitle">Cruz Roja Dominicana - Proyecto Ready 360</p>
+      <p style="font-size: 0.85rem; margin-top: 4px;" data-i18n="footer">Software presupuestario hecho por Jesus Dawarly Ramirez (Administrador)</p>
     </div>
 
     <div class="controls">
-      <div class="currency-switch form-group">
-        <label for="currencySwitch">Moneda</label>
-        <select id="currencySwitch" onchange="toggleCurrency()">
-          <option value="EUR" selected>Euros (€)</option>
-          <option value="DOP">Pesos Dominicanos (RD$)</option>
-        </select>
+      <div class="switches">
+        <div class="currency-switch form-group">
+          <label for="currencySwitch" data-i18n="currencyLabel">Moneda</label>
+          <select id="currencySwitch" onchange="toggleCurrency()">
+            <option value="EUR" selected data-i18n="currencyEuro">Euros (€)</option>
+            <option value="DOP" data-i18n="currencyDOP">Pesos Dominicanos (RD$)</option>
+          </select>
+        </div>
+        <div class="language-switch form-group">
+          <label for="languageSwitch" data-i18n="languageLabel">Idioma</label>
+          <select id="languageSwitch" onchange="toggleLanguage()">
+            <option value="es" selected>Español</option>
+            <option value="fr">Français</option>
+          </select>
+        </div>
       </div>
 
       <div class="add-expense">
         <div class="form-group">
-          <label for="expenseCategory">Partida Presupuestaria</label>
+          <label for="expenseCategory" data-i18n="selectCategoryLabel">Partida Presupuestaria</label>
           <select id="expenseCategory"></select>
         </div>
         <div class="form-group">
-          <label for="expenseAmount">Monto (€)</label>
+          <label for="expenseAmount" id="expenseAmountLabel" data-i18n="amountLabel">Monto (€)</label>
           <input type="number" id="expenseAmount" placeholder="0.00" step="0.01" min="0" />
         </div>
         <div class="form-group">
-          <label for="expenseDescription">Descripción del Gasto</label>
-          <input type="text" id="expenseDescription" placeholder="Detalle del gasto" />
+          <label for="expenseDescription" data-i18n="descriptionLabel">Descripción del Gasto</label>
+          <input type="text" id="expenseDescription" placeholder="" />
         </div>
-        <button class="btn" onclick="addExpense()">Registrar Gasto</button>
+        <button class="btn" id="addExpenseBtn" onclick="addExpense()" data-i18n="btnAddExpense">Registrar Gasto</button>
       </div>
     </div>
 
     <div class="summary">
       <div class="summary-card total">
-        <h3>Presupuesto Total</h3>
+        <h3 data-i18n="totalBudgetTitle">Presupuesto Total</h3>
         <div class="amount" id="totalBudget">€217,831</div>
       </div>
       <div class="summary-card used">
-        <h3>Total Ejecutado</h3>
+        <h3 data-i18n="totalUsedTitle">Total Ejecutado</h3>
         <div class="amount" id="totalUsed">€0</div>
       </div>
       <div class="summary-card remaining">
-        <h3>Saldo Disponible</h3>
+        <h3 data-i18n="totalRemainingTitle">Saldo Disponible</h3>
         <div class="amount" id="totalRemaining">€217,831</div>
       </div>
     </div>
@@ -378,14 +388,14 @@
       <table id="budgetTable">
         <thead>
           <tr>
-            <th>Código</th>
-            <th>Partida / Descripción</th>
-            <th>Categoría</th>
-            <th>Presupuesto Original (€)</th>
-            <th>Gastado (€)</th>
-            <th>Saldo (€)</th>
-            <th>% Ejecución</th>
-            <th>Historial de Gastos</th>
+            <th data-i18n="tableCode">Código</th>
+            <th data-i18n="tableDescription">Partida / Descripción</th>
+            <th data-i18n="tableCategory">Categoría</th>
+            <th data-i18n="tableOriginalBudget">Presupuesto Original (€)</th>
+            <th data-i18n="tableUsed">Gastado (€)</th>
+            <th data-i18n="tableBalance">Saldo (€)</th>
+            <th data-i18n="tablePercent">%</th>
+            <th data-i18n="tableExpenses">Historial de Gastos</th>
           </tr>
         </thead>
         <tbody id="budgetTableBody"></tbody>
@@ -395,28 +405,28 @@
 
   <script>
     const budgetData = [
-      //... (tu arreglo original aquí, sin cambios)
+      // Aquí debes colocar tu arreglo completo original sin cambios
       {
         code: "HR.SUP",
-        description: "Supervisor Logístico/Administrativo",
-        category: "Recursos Humanos",
+        description: { es: "Supervisor Logístico/Administrativo", fr: "Superviseur Logistique/Administratif" },
+        category: { es: "Recursos Humanos", fr: "Ressources Humaines" },
         originalBudget: 20000,
         used: 0,
         expenses: []
       },
       {
         code: "HR.PM",
-        description: "Coordinador del Proyecto (24 meses)",
-        category: "Recursos Humanos",
+        description: { es: "Coordinador del Proyecto (24 meses)", fr: "Coordinateur de Projet (24 mois)" },
+        category: { es: "Recursos Humanos", fr: "Ressources Humaines" },
         originalBudget: 24000,
         used: 0,
         expenses: []
       },
-      //... el resto igual que tu código original
+      // ... Resto igual, ejemplo parcial
       {
         code: "IND",
-        description: "Costos Indirectos (3%)",
-        category: "Costos Indirectos",
+        description: { es: "Costos Indirectos (3%)", fr: "Coûts Indirects (3%)" },
+        category: { es: "Costos Indirectos", fr: "Coûts Indirects" },
         originalBudget: 6345,
         used: 0,
         expenses: []
@@ -425,28 +435,187 @@
 
     const exchangeRate = 60; // 1 EUR = 60 DOP (tasa fija)
     let currentCurrency = 'EUR';
+    let currentLanguage = 'es';
 
-    function formatCurrency(amount) {
+    // Textos traducibles estáticos
+    const translations = {
+      es: {
+        title: "Sistema de Control Presupuestario",
+        subtitle: "Cruz Roja Dominicana - Proyecto Ready 360",
+        footer: "Software presupuestario hecho por Jesus Dawarly Ramirez (Administrador)",
+        currencyLabel: "Moneda",
+        currencyEuro: "Euros (€)",
+        currencyDOP: "Pesos Dominicanos (RD$)",
+        languageLabel: "Idioma",
+        selectCategoryLabel: "Partida Presupuestaria",
+        amountLabel: "Monto (€)",
+        descriptionLabel: "Descripción del Gasto",
+        btnAddExpense: "Registrar Gasto",
+        totalBudgetTitle: "Presupuesto Total",
+        totalUsedTitle: "Total Ejecutado",
+        totalRemainingTitle: "Saldo Disponible",
+        tableCode: "Código",
+        tableDescription: "Partida / Descripción",
+        tableCategory: "Categoría",
+        tableOriginalBudget: "Presupuesto Original (€)",
+        tableUsed: "Gastado (€)",
+        tableBalance: "Saldo (€)",
+        tablePercent: "%",
+        tableExpenses: "Historial de Gastos",
+        selectCategoryPlaceholder: "Seleccione una partida...",
+        expenseDescriptionPlaceholder: "Detalle del gasto",
+        alertFillFields: "Por favor complete todos los campos correctamente.",
+        alertCategoryNotFound: "Partida no encontrada."
+      },
+      fr: {
+        title: "Système de Contrôle Budgétaire",
+        subtitle: "Croix-Rouge Dominicaine - Projet Ready 360",
+        footer: "Logiciel budgétaire créé par Jesus Dawarly Ramirez (Administrateur)",
+        currencyLabel: "Devise",
+        currencyEuro: "Euros (€)",
+        currencyDOP: "Pesos Dominicains (RD$)",
+        languageLabel: "Langue",
+        selectCategoryLabel: "Poste Budgétaire",
+        amountLabel: "Montant (€)",
+        descriptionLabel: "Description de la Dépense",
+        btnAddExpense: "Enregistrer la Dépense",
+        totalBudgetTitle: "Budget Total",
+        totalUsedTitle: "Total Dépensé",
+        totalRemainingTitle: "Solde Disponible",
+        tableCode: "Code",
+        tableDescription: "Poste / Description",
+        tableCategory: "Catégorie",
+        tableOriginalBudget: "Budget Initial (€)",
+        tableUsed: "Dépensé (€)",
+        tableBalance: "Solde (€)",
+        tablePercent: "%",
+        tableExpenses: "Historique des Dépenses",
+        selectCategoryPlaceholder: "Sélectionnez un poste...",
+        expenseDescriptionPlaceholder: "Détail de la dépense",
+        alertFillFields: "Veuillez remplir correctement tous les champs.",
+        alertCategoryNotFound: "Poste non trouvé."
+      }
+    };
+
+    function translatePage() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[currentLanguage] && translations[currentLanguage][key]) {
+          el.textContent = translations[currentLanguage][key];
+        }
+      });
+
+      // Cambiar placeholders
+      document.getElementById('expenseCategory').options[0].textContent = translations[currentLanguage].selectCategoryPlaceholder;
+      document.getElementById('expenseDescription').placeholder = translations[currentLanguage].expenseDescriptionPlaceholder;
+
+      // Actualizar label monto según moneda e idioma
+      updateAmountLabel();
+
+      // Actualizar opciones de moneda (por si cambian el idioma)
+      const currencySelect = document.getElementById('currencySwitch');
+      currencySelect.options[0].textContent = translations[currentLanguage].currencyEuro;
+      currencySelect.options[1].textContent = translations[currentLanguage].currencyDOP;
+
+      // Actualizar select partidas con traducción actualizada
+      populateSelect();
+      renderTable();
+      updateSummary();
+    }
+
+    function updateAmountLabel() {
+      const label = document.getElementById('expenseAmountLabel');
+      const symbol = currentCurrency === 'EUR' ? (currentLanguage === 'fr' ? '€' : '€') : (currentLanguage === 'fr' ? 'RD$' : 'RD$');
+      const amountText = currentLanguage === 'fr'
+        ? `Montant (${symbol})`
+        : `Monto (${symbol})`;
+      label.textContent = amountText;
+    }
+
+    function toggleCurrency() {
+      const select = document.getElementById('currencySwitch');
+      currentCurrency = select.value;
+
+      // Ajustar placeholder y etiqueta monto
+      updateAmountLabel();
+
+      renderTable();
+      updateSummary();
+    }
+
+    function toggleLanguage() {
+      const select = document.getElementById('languageSwitch');
+      currentLanguage = select.value;
+
+      translatePage();
+    }
+
+    function populateSelect() {
+      const select = document.getElementById('expenseCategory');
+      select.innerHTML = '';
+      const placeholderOption = document.createElement('option');
+      placeholderOption.value = "";
+      placeholderOption.disabled = true;
+      placeholderOption.selected = true;
+      placeholderOption.textContent = translations[currentLanguage].selectCategoryPlaceholder;
+      select.appendChild(placeholderOption);
+
+      budgetData.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.code;
+        option.textContent = item.description[currentLanguage];
+        select.appendChild(option);
+      });
+    }
+
+    function formatCurrency(value) {
       if (currentCurrency === 'EUR') {
-        return new Intl.NumberFormat('es-ES', {
-          style: 'currency',
-          currency: 'EUR',
-          minimumFractionDigits: 2
-        }).format(amount);
+        return new Intl.NumberFormat(currentLanguage === 'fr' ? 'fr-FR' : 'es-ES', { style: 'currency', currency: 'EUR' }).format(value);
       } else {
-        return new Intl.NumberFormat('es-DO', {
-          style: 'currency',
-          currency: 'DOP',
-          minimumFractionDigits: 2
-        }).format(amount);
+        return new Intl.NumberFormat(currentLanguage === 'fr' ? 'fr-HT' : 'es-DO', { style: 'currency', currency: 'DOP' }).format(value);
       }
     }
 
-    function convertAmount(amount, fromCurrency, toCurrency) {
-      if (fromCurrency === toCurrency) return amount;
-      if (fromCurrency === 'EUR' && toCurrency === 'DOP') return amount * exchangeRate;
-      if (fromCurrency === 'DOP' && toCurrency === 'EUR') return amount / exchangeRate;
-      return amount;
+    function addExpense() {
+      const categorySelect = document.getElementById('expenseCategory');
+      const amountInput = document.getElementById('expenseAmount');
+      const descriptionInput = document.getElementById('expenseDescription');
+
+      const code = categorySelect.value;
+      const amountRaw = parseFloat(amountInput.value);
+      const description = descriptionInput.value.trim();
+
+      if (!code || isNaN(amountRaw) || amountRaw <= 0 || !description) {
+        alert(translations[currentLanguage].alertFillFields);
+        return;
+      }
+
+      const categoryObj = budgetData.find(item => item.code === code);
+      if (!categoryObj) {
+        alert(translations[currentLanguage].alertCategoryNotFound);
+        return;
+      }
+
+      // Convierte monto a euros si está en pesos
+      let amount = amountRaw;
+      if (currentCurrency === 'DOP') {
+        amount = amountRaw / exchangeRate;
+      }
+
+      categoryObj.used += amount;
+      categoryObj.expenses.push({
+        amount,
+        description,
+        date: new Date()
+      });
+
+      // Limpieza y reset inputs
+      amountInput.value = '';
+      descriptionInput.value = '';
+      categorySelect.selectedIndex = 0;
+
+      renderTable();
+      updateSummary();
     }
 
     function renderTable() {
@@ -454,141 +623,136 @@
       tbody.innerHTML = '';
 
       budgetData.forEach(item => {
-        const remaining = item.originalBudget - item.used;
-        const percentage = item.originalBudget > 0 ? (item.used / item.originalBudget) * 100 : 0;
+        const balance = item.originalBudget - item.used;
+        const percentUsed = (item.used / item.originalBudget) * 100;
 
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><span class="code">${item.code}</span></td>
-          <td><strong>${item.description}</strong></td>
-          <td><span class="category">${item.category}</span></td>
-          <td class="amount">${formatCurrency(item.originalBudget)}</td>
-          <td class="amount ${item.used > 0 ? 'negative' : ''}">${formatCurrency(item.used)}</td>
-          <td class="amount ${remaining >= 0 ? 'positive' : 'negative'}">${formatCurrency(remaining)}</td>
-          <td>
-            <div>${percentage.toFixed(1)}%</div>
-            <div class="progress-bar">
-              <div class="progress-fill ${percentage > 100 ? 'over' : ''}" style="width: ${Math.min(percentage, 100)}%"></div>
-            </div>
-          </td>
-          <td>
-            <div class="expense-log">
-              ${
-                item.expenses.length > 0
-                  ? item.expenses
-                      .map(
-                        expense => `
-                <div class="expense-item">
-                  <div>
-                    <div>${expense.description}</div>
-                    <div class="expense-date">${expense.date}</div>
-                  </div>
-                  <div class="expense-amount">${formatCurrency(expense.amount)}</div>
-                </div>
-              `
-                      )
-                      .join('')
-                  : '<div style="color: #999; text-align: center; padding: 20px;">No hay gastos registrados</div>'
-              }
-            </div>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
+        // Ajustar valores por moneda
+        let original = item.originalBudget;
+        let used = item.used;
+        let bal = balance;
+        if (currentCurrency === 'DOP') {
+          original = original * exchangeRate;
+          used = used * exchangeRate;
+          bal = bal * exchangeRate;
+        }
 
-    function populateSelect() {
-      const select = document.getElementById('expenseCategory');
-      select.innerHTML = '<option value="">Seleccione una partida...</option>';
+        const tr = document.createElement('tr');
 
-      budgetData.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item.code;
-        option.textContent = `${item.code} - ${item.description}`;
-        select.appendChild(option);
+        // Código
+        const tdCode = document.createElement('td');
+        tdCode.textContent = item.code;
+        tdCode.className = 'code';
+        tr.appendChild(tdCode);
+
+        // Descripción
+        const tdDesc = document.createElement('td');
+        tdDesc.textContent = item.description[currentLanguage];
+        tr.appendChild(tdDesc);
+
+        // Categoría
+        const tdCat = document.createElement('td');
+        tdCat.textContent = item.category[currentLanguage];
+        tdCat.className = 'category';
+        tr.appendChild(tdCat);
+
+        // Presupuesto Original
+        const tdOriginal = document.createElement('td');
+        tdOriginal.className = 'amount';
+        tdOriginal.textContent = formatCurrency(original);
+        tr.appendChild(tdOriginal);
+
+        // Gastado
+        const tdUsed = document.createElement('td');
+        tdUsed.className = 'amount positive';
+        tdUsed.textContent = formatCurrency(used);
+        tr.appendChild(tdUsed);
+
+        // Saldo
+        const tdBalance = document.createElement('td');
+        tdBalance.className = 'amount';
+        tdBalance.textContent = formatCurrency(bal);
+        tdBalance.classList.add(bal >= 0 ? 'positive' : 'negative');
+        tr.appendChild(tdBalance);
+
+        // %
+        const tdPercent = document.createElement('td');
+        tdPercent.style.minWidth = "110px";
+        const progress = document.createElement('div');
+        progress.className = 'progress-bar';
+        const progressFill = document.createElement('div');
+        progressFill.className = 'progress-fill';
+        progressFill.style.width = Math.min(percentUsed, 100) + '%';
+        if (percentUsed > 100) {
+          progressFill.classList.add('over');
+        }
+        progress.appendChild(progressFill);
+        tdPercent.appendChild(progress);
+        tr.appendChild(tdPercent);
+
+        // Historial Gastos
+        const tdExpenses = document.createElement('td');
+        tdExpenses.style.minWidth = '200px';
+        if (item.expenses.length === 0) {
+          tdExpenses.textContent = '-';
+        } else {
+          const logDiv = document.createElement('div');
+          logDiv.className = 'expense-log';
+          item.expenses.forEach(e => {
+            const expDiv = document.createElement('div');
+            expDiv.className = 'expense-item';
+
+            const descSpan = document.createElement('span');
+            descSpan.textContent = e.description;
+
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'expense-date';
+            dateSpan.textContent = e.date.toLocaleDateString(currentLanguage);
+
+            const amountSpan = document.createElement('span');
+            amountSpan.className = 'expense-amount';
+            amountSpan.textContent = formatCurrency(currentCurrency === 'EUR' ? e.amount : e.amount * exchangeRate);
+
+            expDiv.appendChild(descSpan);
+            expDiv.appendChild(dateSpan);
+            expDiv.appendChild(amountSpan);
+
+            logDiv.appendChild(expDiv);
+          });
+          tdExpenses.appendChild(logDiv);
+        }
+        tr.appendChild(tdExpenses);
+
+        tbody.appendChild(tr);
       });
     }
 
     function updateSummary() {
-      const totalBudget = budgetData.reduce((sum, item) => sum + item.originalBudget, 0);
-      const totalUsed = budgetData.reduce((sum, item) => sum + item.used, 0);
-      const totalRemaining = totalBudget - totalUsed;
+      const totalOriginal = budgetData.reduce((acc, cur) => acc + cur.originalBudget, 0);
+      const totalUsed = budgetData.reduce((acc, cur) => acc + cur.used, 0);
+      const totalRemaining = totalOriginal - totalUsed;
 
-      document.getElementById('totalBudget').textContent = formatCurrency(totalBudget);
-      document.getElementById('totalUsed').textContent = formatCurrency(totalUsed);
-      document.getElementById('totalRemaining').textContent = formatCurrency(totalRemaining);
+      let totalOrigDisplay = totalOriginal;
+      let totalUsedDisplay = totalUsed;
+      let totalRemainingDisplay = totalRemaining;
+
+      if (currentCurrency === 'DOP') {
+        totalOrigDisplay *= exchangeRate;
+        totalUsedDisplay *= exchangeRate;
+        totalRemainingDisplay *= exchangeRate;
+      }
+
+      document.getElementById('totalBudget').textContent = formatCurrency(totalOrigDisplay);
+      document.getElementById('totalUsed').textContent = formatCurrency(totalUsedDisplay);
+      document.getElementById('totalRemaining').textContent = formatCurrency(totalRemainingDisplay);
     }
 
-    function addExpense() {
-      const categoryCode = document.getElementById('expenseCategory').value;
-      const amount = parseFloat(document.getElementById('expenseAmount').value);
-      const description = document.getElementById('expenseDescription').value.trim();
-
-      if (!categoryCode || !amount || amount <= 0 || !description) {
-        alert('Por favor complete todos los campos correctamente.');
-        return;
-      }
-
-      const item = budgetData.find(item => item.code === categoryCode);
-      if (!item) {
-        alert('Partida no encontrada.');
-        return;
-      }
-
-      const expense = {
-        amount: amount,
-        description: description,
-        date: new Date().toLocaleDateString('es-ES')
-      };
-
-      item.used += amount;
-      item.expenses.push(expense);
-
-      // Limpiar formulario
-      document.getElementById('expenseCategory').value = '';
-      document.getElementById('expenseAmount').value = '';
-      document.getElementById('expenseDescription').value = '';
-
+    // Inicializar página
+    window.onload = () => {
+      populateSelect();
+      translatePage();
       renderTable();
       updateSummary();
-    }
-
-    function toggleCurrency() {
-      const select = document.getElementById('currencySwitch');
-      const newCurrency = select.value;
-      if (newCurrency === currentCurrency) return;
-
-      // Convertir todos los valores a la nueva moneda
-      budgetData.forEach(item => {
-        item.originalBudget = convertAmount(item.originalBudget, currentCurrency, newCurrency);
-        item.used = convertAmount(item.used, currentCurrency, newCurrency);
-        item.expenses.forEach(expense => {
-          expense.amount = convertAmount(expense.amount, currentCurrency, newCurrency);
-        });
-      });
-
-      currentCurrency = newCurrency;
-
-      // Actualizar etiquetas y placeholders
-      const amountLabel = document.querySelector('label[for="expenseAmount"]');
-      const amountInput = document.getElementById('expenseAmount');
-
-      if (currentCurrency === 'EUR') {
-        amountLabel.textContent = 'Monto (€)';
-        amountInput.placeholder = '0.00';
-      } else {
-        amountLabel.textContent = 'Monto (RD$)';
-        amountInput.placeholder = '0.00';
-      }
-
-      renderTable();
-      updateSummary();
-    }
-
-    // Inicialización
-    populateSelect();
-    renderTable();
-    updateSummary();
+    };
   </script>
 </body>
 </html>
