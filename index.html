@@ -1,758 +1,827 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sistema de Control Presupuestario - Cruz Roja Dominicana</title>
-  <style>
-    /* RESET BÁSICO */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #fefefe;
-      color: #222;
-      padding: 20px;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 1200px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgb(220 38 38 / 0.15);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* HEADER */
-    .header {
-      background: linear-gradient(135deg, #dc2626, #991b1b);
-      color: white;
-      padding: 24px 32px;
-      text-align: center;
-    }
-
-    .header h1 {
-      font-weight: 700;
-      font-size: 2.25rem;
-      margin-bottom: 6px;
-      letter-spacing: 0.05em;
-    }
-
-    .header p {
-      font-weight: 500;
-      font-size: 1rem;
-      opacity: 0.85;
-      line-height: 1.3;
-    }
-
-    /* CONTROLES */
-    .controls {
-      padding: 24px 32px;
-      border-bottom: 1px solid #eee;
-      background: #fafafa;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      align-items: flex-end;
-      justify-content: space-between;
-    }
-
-    .switches {
-      display: flex;
-      gap: 20px;
-      align-items: flex-end;
-    }
-
-    .add-expense {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      flex-grow: 1;
-      min-width: 320px;
-      align-items: flex-end;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 140px;
-      flex: 1 1 auto;
-    }
-
-    label {
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: #444;
-    }
-
-    select,
-    input[type='number'],
-    input[type='text'] {
-      padding: 10px 14px;
-      border: 1.5px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.25s ease;
-      background: white;
-      color: #222;
-    }
-
-    select:focus,
-    input[type='number']:focus,
-    input[type='text']:focus {
-      outline: none;
-      border-color: #dc2626;
-      box-shadow: 0 0 6px rgb(220 38 38 / 0.3);
-    }
-
-    button.btn {
-      background: #dc2626;
-      color: white;
-      font-weight: 700;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 28px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      flex-shrink: 0;
-      font-size: 1rem;
-      box-shadow: 0 4px 12px rgb(220 38 38 / 0.3);
-    }
-
-    button.btn:hover {
-      background: #a02121;
-      box-shadow: 0 6px 20px rgb(160 33 33 / 0.5);
-    }
-
-    /* RESUMEN */
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 16px;
-      padding: 24px 32px;
-      background: #f9f9f9;
-      border-bottom: 1px solid #eee;
-    }
-
-    .summary-card {
-      background: white;
-      padding: 20px 24px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgb(0 0 0 / 0.05);
-      border-left: 5px solid transparent;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .summary-card.total {
-      border-left-color: #2563eb;
-    }
-
-    .summary-card.used {
-      border-left-color: #dc2626;
-    }
-
-    .summary-card.remaining {
-      border-left-color: #059669;
-    }
-
-    .summary-card h3 {
-      font-weight: 600;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      color: #555;
-      margin-bottom: 8px;
-      letter-spacing: 0.05em;
-    }
-
-    .summary-card .amount {
-      font-weight: 700;
-      font-size: 1.75rem;
-      color: #111;
-      white-space: nowrap;
-    }
-
-    /* TABLA */
-    .table-container {
-      overflow-x: auto;
-      padding: 24px 32px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-      color: #333;
-      min-width: 900px;
-    }
-
-    th {
-      background: #991b1b;
-      color: white;
-      font-weight: 600;
-      text-align: left;
-      padding: 14px 12px;
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      letter-spacing: 0.04em;
-    }
-
-    td {
-      padding: 12px 12px;
-      border-bottom: 1px solid #eee;
-      vertical-align: top;
-    }
-
-    tr:hover {
-      background: #f4f4f4;
-    }
-
-    .code {
-      font-family: 'Courier New', monospace;
-      background: #f9f9f9;
-      padding: 3px 6px;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      color: #991b1b;
-      user-select: all;
-    }
-
-    .amount {
-      text-align: right;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .amount.positive {
-      color: #059669;
-    }
-
-    .amount.negative {
-      color: #dc2626;
-    }
-
-    .category {
-      font-weight: 600;
-      color: #991b1b;
-      font-size: 0.9rem;
-    }
-
-    .progress-bar {
-      height: 8px;
-      background: #eee;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 6px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #059669 0%, #10b981 100%);
-      transition: width 0.3s ease;
-    }
-
-    .progress-fill.over {
-      background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
-    }
-
-    .expense-log {
-      max-height: 180px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 8px 12px;
-      background: #fafafa;
-      font-size: 0.85rem;
-      color: #555;
-    }
-
-    .expense-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      border-bottom: 1px solid #eee;
-    }
-
-    .expense-item:last-child {
-      border-bottom: none;
-    }
-
-    .expense-date {
-      font-size: 0.75rem;
-      color: #999;
-    }
-
-    .expense-amount {
-      font-weight: 700;
-      color: #dc2626;
-      white-space: nowrap;
-      margin-left: 12px;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-      .controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .add-expense {
-        flex-direction: column;
-        min-width: auto;
-      }
-
-      .form-group {
-        min-width: 100%;
-      }
-
-      table {
-        font-size: 0.85rem;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Presupuestario - Cruz Roja Dominicana</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d1117 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e6edf3;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(13, 17, 23, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 10 L60 40 L90 40 L68 58 L78 88 L50 70 L22 88 L32 58 L10 40 L40 40 Z" fill="rgba(255,255,255,0.05)"/></svg>') center/200px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .switches {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 2;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255,255,255,0.2);
+            transition: .4s;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        input:checked + .slider {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        
+        .switch-label {
+            color: white;
+            font-size: 12px;
+            margin-bottom: 5px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .controls {
+            padding: 30px;
+            background: rgba(13, 17, 23, 0.8);
+            border-bottom: 2px solid rgba(220, 38, 38, 0.3);
+        }
+        
+        .add-expense {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #e6edf3;
+            font-size: 0.9em;
+        }
+        
+        .form-group select,
+        .form-group input {
+            padding: 12px;
+            border: 2px solid rgba(220, 38, 38, 0.3);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(13, 17, 23, 0.9);
+            color: #e6edf3;
+        }
+        
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(220, 38, 38, 0.4);
+        }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: rgba(13, 17, 23, 0.8);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(220, 38, 38, 0.1);
+        }
+        
+        .summary-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .summary-card.total {
+            border-left-color: #3b82f6;
+        }
+        
+        .summary-card.used {
+            border-left-color: #ef4444;
+        }
+        
+        .summary-card.remaining {
+            border-left-color: #10b981;
+        }
+        
+        .summary-card h3 {
+            font-size: 0.9em;
+            color: #8b949e;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .summary-card .amount {
+            font-size: 2em;
+            font-weight: 700;
+            color: #e6edf3;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            background: rgba(13, 17, 23, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            border: 1px solid rgba(220, 38, 38, 0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(220, 38, 38, 0.1);
+            vertical-align: top;
+            color: #e6edf3;
+        }
+        
+        tr:hover {
+            background-color: rgba(220, 38, 38, 0.05);
+        }
+        
+        .code {
+            font-family: 'Courier New', monospace;
+            background: rgba(220, 38, 38, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #dc2626;
+        }
+        
+        .amount {
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        .amount.positive {
+            color: #10b981;
+        }
+        
+        .amount.negative {
+            color: #ef4444;
+        }
+        
+        .category {
+            font-weight: 600;
+            color: #e6edf3;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(220, 38, 38, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            transition: width 0.3s ease;
+        }
+        
+        .progress-fill.over {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .expense-log {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(220, 38, 38, 0.1);
+            font-size: 13px;
+        }
+        
+        .expense-item:last-child {
+            border-bottom: none;
+        }
+        
+        .expense-date {
+            color: #8b949e;
+            font-size: 11px;
+        }
+        
+        .expense-amount {
+            font-weight: 600;
+            color: #ef4444;
+        }
+        
+        @media (max-width: 768px) {
+            .add-expense {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                width: 100%;
+            }
+            
+            .switches {
+                position: relative;
+                top: 0;
+                right: 0;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1 data-i18n="title">Sistema de Control Presupuestario</h1>
-      <p data-i18n="subtitle">Cruz Roja Dominicana - Proyecto Ready 360</p>
-      <p style="font-size: 0.85rem; margin-top: 4px;" data-i18n="footer">Software presupuestario hecho por Jesus Dawarly Ramirez (Administrador)</p>
+    <div class="container">
+        <div class="header">
+            <div class="switches">
+                <div>
+                    <div class="switch-label" data-lang-key="currencySwitch">MONEDA</div>
+                    <label class="switch">
+                        <input type="checkbox" id="currencySwitch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div>
+                    <div class="switch-label" data-lang-key="languageSwitch">IDIOMA</div>
+                    <label class="switch">
+                        <input type="checkbox" id="languageSwitch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <h1 data-lang-key="title">Sistema de Control Presupuestario</h1>
+            <p data-lang-key="subtitle">Cruz Roja Dominicana - Proyecto Ready 360</p>
+            <p data-lang-key="credits">Software presupuestario hecho por Jesus Dawarly Ramirez (Administrador)</p>
+        </div>
+        
+        <div class="controls">
+            <div class="add-expense">
+                <div class="form-group">
+                    <label for="expenseCategory" data-lang-key="budgetItem">Partida Presupuestaria</label>
+                    <select id="expenseCategory"></select>
+                </div>
+                <div class="form-group">
+                    <label for="expenseAmount" data-lang-key="amount">Monto (<span id="currencySymbol">€</span>)</label>
+                    <input type="number" id="expenseAmount" data-lang-placeholder="0.00" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="expenseDescription" data-lang-key="description">Descripción del Gasto</label>
+                    <input type="text" id="expenseDescription" data-lang-key="descriptionPlaceholder">
+                </div>
+                <button class="btn" onclick="addExpense()" data-lang-key="addExpenseBtn">Registrar Gasto</button>
+            </div>
+            
+            <div class="summary">
+                <div class="summary-card total">
+                    <h3 data-lang-key="totalBudget">Presupuesto Total</h3>
+                    <div class="amount" id="totalBudget">€217,831</div>
+                </div>
+                <div class="summary-card used">
+                    <h3 data-lang-key="totalUsed">Total Ejecutado</h3>
+                    <div class="amount" id="totalUsed">€0</div>
+                </div>
+                <div class="summary-card remaining">
+                    <h3 data-lang-key="totalRemaining">Saldo Disponible</h3>
+                    <div class="amount" id="totalRemaining">€217,831</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="budgetTable">
+                <thead>
+                    <tr>
+                        <th data-lang-key="codeHeader">Código</th>
+                        <th data-lang-key="itemHeader">Partida / Descripción</th>
+                        <th data-lang-key="categoryHeader">Categoría</th>
+                        <th data-lang-key="originalBudgetHeader">Presupuesto Original (<span class="currency-header">€</span>)</th>
+                        <th data-lang-key="spentHeader">Gastado (<span class="currency-header">€</span>)</th>
+                        <th data-lang-key="balanceHeader">Saldo (<span class="currency-header">€</span>)</th>
+                        <th data-lang-key="executionHeader">% Ejecución</th>
+                        <th data-lang-key="historyHeader">Historial de Gastos</th>
+                    </tr>
+                </thead>
+                <tbody id="budgetTableBody">
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="controls">
-      <div class="switches">
-        <div class="currency-switch form-group">
-          <label for="currencySwitch" data-i18n="currencyLabel">Moneda</label>
-          <select id="currencySwitch" onchange="toggleCurrency()">
-            <option value="EUR" selected data-i18n="currencyEuro">Euros (€)</option>
-            <option value="DOP" data-i18n="currencyDOP">Pesos Dominicanos (RD$)</option>
-          </select>
-        </div>
-        <div class="language-switch form-group">
-          <label for="languageSwitch" data-i18n="languageLabel">Idioma</label>
-          <select id="languageSwitch" onchange="toggleLanguage()">
-            <option value="es" selected>Español</option>
-            <option value="fr">Français</option>
-          </select>
-        </div>
-      </div>
+    <script>
+        // Configuración de idiomas
+        const translations = {
+            es: {
+                title: "Sistema de Control Presupuestario",
+                subtitle: "Cruz Roja Dominicana - Proyecto Ready 360",
+                credits: "Software presupuestario hecho por Jesus Dawarly Ramirez (Administrador)",
+                currencySwitch: "MONEDA",
+                languageSwitch: "IDIOMA",
+                budgetItem: "Partida Presupuestaria",
+                amount: "Monto",
+                description: "Descripción del Gasto",
+                descriptionPlaceholder: "Detalle del gasto",
+                addExpenseBtn: "Registrar Gasto",
+                totalBudget: "Presupuesto Total",
+                totalUsed: "Total Ejecutado",
+                totalRemaining: "Saldo Disponible",
+                codeHeader: "Código",
+                itemHeader: "Partida / Descripción",
+                categoryHeader: "Categoría",
+                originalBudgetHeader: "Presupuesto Original",
+                spentHeader: "Gastado",
+                balanceHeader: "Saldo",
+                executionHeader: "% Ejecución",
+                historyHeader: "Historial de Gastos",
+                selectItem: "Seleccione una partida...",
+                noExpenses: "No hay gastos registrados",
+                completeFields: "Por favor complete todos los campos correctamente.",
+                itemNotFound: "Partida no encontrada.",
+                categories: {
+                    "Recursos Humanos": "Recursos Humanos",
+                    "Otros Costos": "Otros Costos",
+                    "Formación": "Formación",
+                    "Comunicación": "Comunicación",
+                    "Marco de Asociación": "Marco de Asociación",
+                    "Kits Educativos": "Kits Educativos",
+                    "Formación Docentes": "Formación Docentes",
+                    "Capitalización": "Capitalización",
+                    "Costos Indirectos": "Costos Indirectos"
+                }
+            },
+            fr: {
+                title: "Système de Contrôle Budgétaire",
+                subtitle: "Croix Rouge Dominicaine - Projet Ready 360",
+                credits: "Logiciel budgétaire créé par Jesus Dawarly Ramirez (Administrateur)",
+                currencySwitch: "DEVISE",
+                languageSwitch: "LANGUE",
+                budgetItem: "Poste Budgétaire",
+                amount: "Montant",
+                description: "Description de la Dépense",
+                descriptionPlaceholder: "Détail de la dépense",
+                addExpenseBtn: "Enregistrer Dépense",
+                totalBudget: "Budget Total",
+                totalUsed: "Total Exécuté",
+                totalRemaining: "Solde Disponible",
+                codeHeader: "Code",
+                itemHeader: "Poste / Description",
+                categoryHeader: "Catégorie",
+                originalBudgetHeader: "Budget Original",
+                spentHeader: "Dépensé",
+                balanceHeader: "Solde",
+                executionHeader: "% Exécution",
+                historyHeader: "Historique des Dépenses",
+                selectItem: "Sélectionnez un poste...",
+                noExpenses: "Aucune dépense enregistrée",
+                completeFields: "Veuillez remplir tous les champs correctement.",
+                itemNotFound: "Poste non trouvé.",
+                categories: {
+                    "Recursos Humanos": "Ressources Humaines",
+                    "Otros Costos": "Autres Coûts",
+                    "Formación": "Formation",
+                    "Comunicación": "Communication",
+                    "Marco de Asociación": "Cadre d'Association",
+                    "Kits Educativos": "Kits Éducatifs",
+                    "Formación Docentes": "Formation Enseignants",
+                    "Capitalización": "Capitalisation",
+                    "Costos Indirectos": "Coûts Indirects"
+                }
+            }
+        };
 
-      <div class="add-expense">
-        <div class="form-group">
-          <label for="expenseCategory" data-i18n="selectCategoryLabel">Partida Presupuestaria</label>
-          <select id="expenseCategory"></select>
-        </div>
-        <div class="form-group">
-          <label for="expenseAmount" id="expenseAmountLabel" data-i18n="amountLabel">Monto (€)</label>
-          <input type="number" id="expenseAmount" placeholder="0.00" step="0.01" min="0" />
-        </div>
-        <div class="form-group">
-          <label for="expenseDescription" data-i18n="descriptionLabel">Descripción del Gasto</label>
-          <input type="text" id="expenseDescription" placeholder="" />
-        </div>
-        <button class="btn" id="addExpenseBtn" onclick="addExpense()" data-i18n="btnAddExpense">Registrar Gasto</button>
-      </div>
-    </div>
+        // Variables globales
+        let currentLanguage = 'es';
+        let currentCurrency = 'EUR';
+        const EUR_TO_DOP_RATE = 66.15; // Tasa de cambio actual
 
-    <div class="summary">
-      <div class="summary-card total">
-        <h3 data-i18n="totalBudgetTitle">Presupuesto Total</h3>
-        <div class="amount" id="totalBudget">€217,831</div>
-      </div>
-      <div class="summary-card used">
-        <h3 data-i18n="totalUsedTitle">Total Ejecutado</h3>
-        <div class="amount" id="totalUsed">€0</div>
-      </div>
-      <div class="summary-card remaining">
-        <h3 data-i18n="totalRemainingTitle">Saldo Disponible</h3>
-        <div class="amount" id="totalRemaining">€217,831</div>
-      </div>
-    </div>
-
-    <div class="table-container">
-      <table id="budgetTable">
-        <thead>
-          <tr>
-            <th data-i18n="tableCode">Código</th>
-            <th data-i18n="tableDescription">Partida / Descripción</th>
-            <th data-i18n="tableCategory">Categoría</th>
-            <th data-i18n="tableOriginalBudget">Presupuesto Original (€)</th>
-            <th data-i18n="tableUsed">Gastado (€)</th>
-            <th data-i18n="tableBalance">Saldo (€)</th>
-            <th data-i18n="tablePercent">%</th>
-            <th data-i18n="tableExpenses">Historial de Gastos</th>
-          </tr>
-        </thead>
-        <tbody id="budgetTableBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <script>
-    const budgetData = [
-      // Aquí debes colocar tu arreglo completo original sin cambios
-      {
-        code: "HR.SUP",
-        description: { es: "Supervisor Logístico/Administrativo", fr: "Superviseur Logistique/Administratif" },
-        category: { es: "Recursos Humanos", fr: "Ressources Humaines" },
-        originalBudget: 20000,
-        used: 0,
-        expenses: []
-      },
-      {
-        code: "HR.PM",
-        description: { es: "Coordinador del Proyecto (24 meses)", fr: "Coordinateur de Projet (24 mois)" },
-        category: { es: "Recursos Humanos", fr: "Ressources Humaines" },
-        originalBudget: 24000,
-        used: 0,
-        expenses: []
-      },
-      // ... Resto igual, ejemplo parcial
-      {
-        code: "IND",
-        description: { es: "Costos Indirectos (3%)", fr: "Coûts Indirects (3%)" },
-        category: { es: "Costos Indirectos", fr: "Coûts Indirects" },
-        originalBudget: 6345,
-        used: 0,
-        expenses: []
-      }
-    ];
-
-    const exchangeRate = 60; // 1 EUR = 60 DOP (tasa fija)
-    let currentCurrency = 'EUR';
-    let currentLanguage = 'es';
-
-    // Textos traducibles estáticos
-    const translations = {
-      es: {
-        title: "Sistema de Control Presupuestario",
-        subtitle: "Cruz Roja Dominicana - Proyecto Ready 360",
-        footer: "Software presupuestario hecho por Jesus Dawarly Ramirez (Administrador)",
-        currencyLabel: "Moneda",
-        currencyEuro: "Euros (€)",
-        currencyDOP: "Pesos Dominicanos (RD$)",
-        languageLabel: "Idioma",
-        selectCategoryLabel: "Partida Presupuestaria",
-        amountLabel: "Monto (€)",
-        descriptionLabel: "Descripción del Gasto",
-        btnAddExpense: "Registrar Gasto",
-        totalBudgetTitle: "Presupuesto Total",
-        totalUsedTitle: "Total Ejecutado",
-        totalRemainingTitle: "Saldo Disponible",
-        tableCode: "Código",
-        tableDescription: "Partida / Descripción",
-        tableCategory: "Categoría",
-        tableOriginalBudget: "Presupuesto Original (€)",
-        tableUsed: "Gastado (€)",
-        tableBalance: "Saldo (€)",
-        tablePercent: "%",
-        tableExpenses: "Historial de Gastos",
-        selectCategoryPlaceholder: "Seleccione una partida...",
-        expenseDescriptionPlaceholder: "Detalle del gasto",
-        alertFillFields: "Por favor complete todos los campos correctamente.",
-        alertCategoryNotFound: "Partida no encontrada."
-      },
-      fr: {
-        title: "Système de Contrôle Budgétaire",
-        subtitle: "Croix-Rouge Dominicaine - Projet Ready 360",
-        footer: "Logiciel budgétaire créé par Jesus Dawarly Ramirez (Administrateur)",
-        currencyLabel: "Devise",
-        currencyEuro: "Euros (€)",
-        currencyDOP: "Pesos Dominicains (RD$)",
-        languageLabel: "Langue",
-        selectCategoryLabel: "Poste Budgétaire",
-        amountLabel: "Montant (€)",
-        descriptionLabel: "Description de la Dépense",
-        btnAddExpense: "Enregistrer la Dépense",
-        totalBudgetTitle: "Budget Total",
-        totalUsedTitle: "Total Dépensé",
-        totalRemainingTitle: "Solde Disponible",
-        tableCode: "Code",
-        tableDescription: "Poste / Description",
-        tableCategory: "Catégorie",
-        tableOriginalBudget: "Budget Initial (€)",
-        tableUsed: "Dépensé (€)",
-        tableBalance: "Solde (€)",
-        tablePercent: "%",
-        tableExpenses: "Historique des Dépenses",
-        selectCategoryPlaceholder: "Sélectionnez un poste...",
-        expenseDescriptionPlaceholder: "Détail de la dépense",
-        alertFillFields: "Veuillez remplir correctement tous les champs.",
-        alertCategoryNotFound: "Poste non trouvé."
-      }
-    };
-
-    function translatePage() {
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (translations[currentLanguage] && translations[currentLanguage][key]) {
-          el.textContent = translations[currentLanguage][key];
-        }
-      });
-
-      // Cambiar placeholders
-      document.getElementById('expenseCategory').options[0].textContent = translations[currentLanguage].selectCategoryPlaceholder;
-      document.getElementById('expenseDescription').placeholder = translations[currentLanguage].expenseDescriptionPlaceholder;
-
-      // Actualizar label monto según moneda e idioma
-      updateAmountLabel();
-
-      // Actualizar opciones de moneda (por si cambian el idioma)
-      const currencySelect = document.getElementById('currencySwitch');
-      currencySelect.options[0].textContent = translations[currentLanguage].currencyEuro;
-      currencySelect.options[1].textContent = translations[currentLanguage].currencyDOP;
-
-      // Actualizar select partidas con traducción actualizada
-      populateSelect();
-      renderTable();
-      updateSummary();
-    }
-
-    function updateAmountLabel() {
-      const label = document.getElementById('expenseAmountLabel');
-      const symbol = currentCurrency === 'EUR' ? (currentLanguage === 'fr' ? '€' : '€') : (currentLanguage === 'fr' ? 'RD$' : 'RD$');
-      const amountText = currentLanguage === 'fr'
-        ? `Montant (${symbol})`
-        : `Monto (${symbol})`;
-      label.textContent = amountText;
-    }
-
-    function toggleCurrency() {
-      const select = document.getElementById('currencySwitch');
-      currentCurrency = select.value;
-
-      // Ajustar placeholder y etiqueta monto
-      updateAmountLabel();
-
-      renderTable();
-      updateSummary();
-    }
-
-    function toggleLanguage() {
-      const select = document.getElementById('languageSwitch');
-      currentLanguage = select.value;
-
-      translatePage();
-    }
-
-    function populateSelect() {
-      const select = document.getElementById('expenseCategory');
-      select.innerHTML = '';
-      const placeholderOption = document.createElement('option');
-      placeholderOption.value = "";
-      placeholderOption.disabled = true;
-      placeholderOption.selected = true;
-      placeholderOption.textContent = translations[currentLanguage].selectCategoryPlaceholder;
-      select.appendChild(placeholderOption);
-
-      budgetData.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item.code;
-        option.textContent = item.description[currentLanguage];
-        select.appendChild(option);
-      });
-    }
-
-    function formatCurrency(value) {
-      if (currentCurrency === 'EUR') {
-        return new Intl.NumberFormat(currentLanguage === 'fr' ? 'fr-FR' : 'es-ES', { style: 'currency', currency: 'EUR' }).format(value);
-      } else {
-        return new Intl.NumberFormat(currentLanguage === 'fr' ? 'fr-HT' : 'es-DO', { style: 'currency', currency: 'DOP' }).format(value);
-      }
-    }
-
-    function addExpense() {
-      const categorySelect = document.getElementById('expenseCategory');
-      const amountInput = document.getElementById('expenseAmount');
-      const descriptionInput = document.getElementById('expenseDescription');
-
-      const code = categorySelect.value;
-      const amountRaw = parseFloat(amountInput.value);
-      const description = descriptionInput.value.trim();
-
-      if (!code || isNaN(amountRaw) || amountRaw <= 0 || !description) {
-        alert(translations[currentLanguage].alertFillFields);
-        return;
-      }
-
-      const categoryObj = budgetData.find(item => item.code === code);
-      if (!categoryObj) {
-        alert(translations[currentLanguage].alertCategoryNotFound);
-        return;
-      }
-
-      // Convierte monto a euros si está en pesos
-      let amount = amountRaw;
-      if (currentCurrency === 'DOP') {
-        amount = amountRaw / exchangeRate;
-      }
-
-      categoryObj.used += amount;
-      categoryObj.expenses.push({
-        amount,
-        description,
-        date: new Date()
-      });
-
-      // Limpieza y reset inputs
-      amountInput.value = '';
-      descriptionInput.value = '';
-      categorySelect.selectedIndex = 0;
-
-      renderTable();
-      updateSummary();
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById('budgetTableBody');
-      tbody.innerHTML = '';
-
-      budgetData.forEach(item => {
-        const balance = item.originalBudget - item.used;
-        const percentUsed = (item.used / item.originalBudget) * 100;
-
-        // Ajustar valores por moneda
-        let original = item.originalBudget;
-        let used = item.used;
-        let bal = balance;
-        if (currentCurrency === 'DOP') {
-          original = original * exchangeRate;
-          used = used * exchangeRate;
-          bal = bal * exchangeRate;
-        }
-
-        const tr = document.createElement('tr');
-
-        // Código
-        const tdCode = document.createElement('td');
-        tdCode.textContent = item.code;
-        tdCode.className = 'code';
-        tr.appendChild(tdCode);
-
-        // Descripción
-        const tdDesc = document.createElement('td');
-        tdDesc.textContent = item.description[currentLanguage];
-        tr.appendChild(tdDesc);
-
-        // Categoría
-        const tdCat = document.createElement('td');
-        tdCat.textContent = item.category[currentLanguage];
-        tdCat.className = 'category';
-        tr.appendChild(tdCat);
-
-        // Presupuesto Original
-        const tdOriginal = document.createElement('td');
-        tdOriginal.className = 'amount';
-        tdOriginal.textContent = formatCurrency(original);
-        tr.appendChild(tdOriginal);
-
-        // Gastado
-        const tdUsed = document.createElement('td');
-        tdUsed.className = 'amount positive';
-        tdUsed.textContent = formatCurrency(used);
-        tr.appendChild(tdUsed);
-
-        // Saldo
-        const tdBalance = document.createElement('td');
-        tdBalance.className = 'amount';
-        tdBalance.textContent = formatCurrency(bal);
-        tdBalance.classList.add(bal >= 0 ? 'positive' : 'negative');
-        tr.appendChild(tdBalance);
-
-        // %
-        const tdPercent = document.createElement('td');
-        tdPercent.style.minWidth = "110px";
-        const progress = document.createElement('div');
-        progress.className = 'progress-bar';
-        const progressFill = document.createElement('div');
-        progressFill.className = 'progress-fill';
-        progressFill.style.width = Math.min(percentUsed, 100) + '%';
-        if (percentUsed > 100) {
-          progressFill.classList.add('over');
-        }
-        progress.appendChild(progressFill);
-        tdPercent.appendChild(progress);
-        tr.appendChild(tdPercent);
-
-        // Historial Gastos
-        const tdExpenses = document.createElement('td');
-        tdExpenses.style.minWidth = '200px';
-        if (item.expenses.length === 0) {
-          tdExpenses.textContent = '-';
-        } else {
-          const logDiv = document.createElement('div');
-          logDiv.className = 'expense-log';
-          item.expenses.forEach(e => {
-            const expDiv = document.createElement('div');
-            expDiv.className = 'expense-item';
-
-            const descSpan = document.createElement('span');
-            descSpan.textContent = e.description;
-
-            const dateSpan = document.createElement('span');
-            dateSpan.className = 'expense-date';
-            dateSpan.textContent = e.date.toLocaleDateString(currentLanguage);
-
-            const amountSpan = document.createElement('span');
-            amountSpan.className = 'expense-amount';
-            amountSpan.textContent = formatCurrency(currentCurrency === 'EUR' ? e.amount : e.amount * exchangeRate);
-
-            expDiv.appendChild(descSpan);
-            expDiv.appendChild(dateSpan);
-            expDiv.appendChild(amountSpan);
-
-            logDiv.appendChild(expDiv);
-          });
-          tdExpenses.appendChild(logDiv);
-        }
-        tr.appendChild(tdExpenses);
-
-        tbody.appendChild(tr);
-      });
-    }
-
-    function updateSummary() {
-      const totalOriginal = budgetData.reduce((acc, cur) => acc + cur.originalBudget, 0);
-      const totalUsed = budgetData.reduce((acc, cur) => acc + cur.used, 0);
-      const totalRemaining = totalOriginal - totalUsed;
-
-      let totalOrigDisplay = totalOriginal;
-      let totalUsedDisplay = totalUsed;
-      let totalRemainingDisplay = totalRemaining;
-
-      if (currentCurrency === 'DOP') {
-        totalOrigDisplay *= exchangeRate;
-        totalUsedDisplay *= exchangeRate;
-        totalRemainingDisplay *= exchangeRate;
-      }
-
-      document.getElementById('totalBudget').textContent = formatCurrency(totalOrigDisplay);
-      document.getElementById('totalUsed').textContent = formatCurrency(totalUsedDisplay);
-      document.getElementById('totalRemaining').textContent = formatCurrency(totalRemainingDisplay);
-    }
-
-    // Inicializar página
-    window.onload = () => {
-      populateSelect();
-      translatePage();
-      renderTable();
-      updateSummary();
-    };
-  </script>
-</body>
-</html>
+        const budgetData = [
+            // RECURSOS HUMANOS
+            {
+                code: "HR.SUP",
+                description: "Supervisor Logístico/Administrativo",
+                category: "Recursos Humanos",
+                originalBudget: 20000,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "HR.PM",
+                description: "Coordinador del Proyecto (24 meses)",
+                category: "Recursos Humanos",
+                originalBudget: 24000,
+                used: 0,
+                expenses: []
+            },
+            
+            // OTROS COSTOS
+            {
+                code: "FUNC",
+                description: "Costos de Funcionamiento (18 meses)",
+                category: "Otros Costos",
+                originalBudget: 7200,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "EQUIP",
+                description: "Compra de Equipos",
+                category: "Otros Costos",
+                originalBudget: 1660,
+                used: 0,
+                expenses: []
+            },
+            
+            // FORMACIÓN FRC/AFD
+            {
+                code: "SNFORM.PD",
+                description: "Per Diem - Formación FRC/AFD",
+                category: "Formación",
+                originalBudget: 152,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "SNFORM.TX",
+                description: "Taxi - Requerimientos de Viaje Formación",
+                category: "Formación",
+                originalBudget: 100,
+                used: 0,
+                expenses: []
+            },
+            
+            // COMUNICACIÓN
+            {
+                code: "R0A0.COM",
+                description: "Cargo por sobrequipaje/Transporte de herramientas",
+                category: "Comunicación",
+                originalBudget: 200,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R0.MOV",
+                description: "Gastos de Movilización (Taxi)",
+                category: "Comunicación",
+                originalBudget: 2000,
+                used: 0,
+                expenses: []
+            },
+            
+            // R3.A11 - MARCO DE ASOCIACIÓN
+            {
+                code: "R3A11.1",
+                description: "Línea Base/Final - Indicadores",
+                category: "Marco de Asociación",
+                originalBudget: 30000,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A11.2.VIS",
+                description: "Visibilidad para el Proyecto",
+                category: "Marco de Asociación",
+                originalBudget: 2000,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A11.2.PROD",
+                description: "Producción de Elementos de Visibilidad",
+                category: "Marco de Asociación",
+                originalBudget: 4000,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A11.3.COF",
+                description: "COPIL y COTECH - Coffee",
+                category: "Marco de Asociación",
+                originalBudget: 500,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A11.3.PRT",
+                description: "COPIL y COTECH - Print",
+                category: "Marco de Asociación",
+                originalBudget: 60,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A11.3.GOD",
+                description: "COPIL y COTECH - Goodies",
+                category: "Marco de Asociación",
+                originalBudget: 374,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A11.4",
+                description: "Reunión de Lanzamiento de Comités - Coffee",
+                category: "Marco de Asociación",
+                originalBudget: 75,
+                used: 0,
+                expenses: []
+            },
+            
+            // R3.A12 - KITS EDUCATIVOS
+            {
+                code: "R3A12.1.ID",
+                description: "Creación Identidad Visual del Proyecto",
+                category: "Kits Educativos",
+                originalBudget: 8000,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.1.TEST",
+                description: "Test de Visibilidad del Proyecto",
+                category: "Kits Educativos",
+                originalBudget: 12000,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.2.MAT",
+                description: "Preparación Material Didáctico + Currículas",
+                category: "Kits Educativos",
+                originalBudget: 49000,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.2.MOV",
+                description: "Movilización Comités Técnico + Pedagógico",
+                category: "Kits Educativos",
+                originalBudget: 240,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.3.IMP",
+                description: "Impresión Prototipo de Herramientas",
+                category: "Kits Educativos",
+                originalBudget: 1500,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.3.SNK",
+                description: "Snack para Niños (Test)",
+                category: "Kits Educativos",
+                originalBudget: 60,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.3.PDV",
+                description: "Per Diem Voluntarios - Test",
+                category: "Kits Educativos",
+                originalBudget: 600,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.3.PDC",
+                description: "Per Diem Chef de Proyecto - Test",
+                category: "Kits Educativos",
+                originalBudget: 80,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.4.FOD",
+                description: "Comida - Formación Voluntarios",
+                category: "Kits Educativos",
+                originalBudget: 425,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.4.PD",
+                description: "Per Diem - Formación Voluntarios",
+                category: "Kits Educativos",
+                originalBudget: 150,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.4.MAT",
+                description: "Material: Cuaderno/Bolígrafo",
+                category: "Kits Educativos",
+                originalBudget: 225,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.4.VIS",
+                description: "Visibilidad para Voluntarios",
+                category: "Kits Educativos",
+                originalBudget: 330,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.5",
+                description: "Presentación a Comités - Coffee",
+                category: "Kits Educativos",
+                originalBudget: 30,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A12.6",
+                description: "Impresión y Producción Final",
+                category: "Kits Educativos",
+                originalBudget: 19000,
+                used: 0,
+                expenses: []
+            },
+            
+            // R3.A13 - FORMACIÓN DOCENTES
+            {
+                code: "R3A13.1",
+                description: "Presentación a Directores - Coffee",
+                category: "Formación Docentes",
+                originalBudget: 300,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A13.2",
+                description: "Construcción Contenido - Consultoría",
+                category: "Formación Docentes",
+                originalBudget: 8000,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A13.3.SAL",
+                description: "Alquiler Salas con Coffee - Santo Domingo",
+                category: "Formación Docentes",
+                originalBudget: 1500,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A13.3.FOD",
+                description: "Comida - Formación Santo Domingo",
+                category: "Formación Docentes",
+                originalBudget: 840,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A13.3.IMP",
+                description: "Impresión Documentos - Formación",
+                category: "Formación Docentes",
+                originalBudget: 10,
+                used: 0,
+                expenses: []
+            },
+            {
+                code: "R3A13.3.GOD",
+                description: "Goodies - Formación",
+                category: "Formación Docentes",
+                originalBudget: 500,
+                used: 0,
+                expenses: []
