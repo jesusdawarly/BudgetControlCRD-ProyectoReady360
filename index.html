@@ -64,6 +64,15 @@
             padding: 30px;
             background: #f8fafc;
             border-bottom: 2px solid #e2e8f0;
+
+            <div class="form-group" style="max-width: 200px;">
+  <label for="currencySwitch">Moneda</label>
+  <select id="currencySwitch" onchange="toggleCurrency()">
+    <option value="EUR" selected>Euros (€)</option>
+    <option value="DOP">Pesos Dominicanos (RD$)</option>
+  </select>
+</div>
+
         }
         
         .add-expense {
