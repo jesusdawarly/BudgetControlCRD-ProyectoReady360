@@ -1,8 +1,8 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Control Presupuestario - Cruz Roja Dominicana</title>
     <style>
         * {
@@ -13,21 +13,18 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d1117 100%);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             padding: 20px;
-            color: #e6edf3;
         }
         
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: rgba(13, 17, 23, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             overflow: hidden;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(220, 38, 38, 0.2);
         }
         
         .header {
@@ -41,11 +38,8 @@
         .header::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 10 L60 40 L90 40 L68 58 L78 88 L50 70 L22 88 L32 58 L10 40 L40 40 Z" fill="rgba(255,255,255,0.05)"/></svg>') center/200px;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
         }
         
         .header h1 {
@@ -63,74 +57,10 @@
             z-index: 1;
         }
         
-        .switches {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 15px;
-            z-index: 2;
-        }
-        
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 30px;
-        }
-        
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255,255,255,0.2);
-            transition: .4s;
-            border-radius: 30px;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-        
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        input:checked + .slider {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
-        
-        .switch-label {
-            color: white;
-            font-size: 12px;
-            margin-bottom: 5px;
-            text-align: center;
-            font-weight: 600;
-        }
-        
         .controls {
             padding: 30px;
-            background: rgba(13, 17, 23, 0.8);
-            border-bottom: 2px solid rgba(220, 38, 38, 0.3);
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
         }
         
         .add-expense {
@@ -149,26 +79,25 @@
         
         .form-group label {
             font-weight: 600;
-            color: #e6edf3;
+            color: #374151;
             font-size: 0.9em;
         }
         
         .form-group select,
         .form-group input {
             padding: 12px;
-            border: 2px solid rgba(220, 38, 38, 0.3);
+            border: 2px solid #e5e7eb;
             border-radius: 8px;
             font-size: 16px;
             transition: all 0.3s ease;
-            background: rgba(13, 17, 23, 0.9);
-            color: #e6edf3;
+            background: white;
         }
         
         .form-group select:focus,
         .form-group input:focus {
             outline: none;
             border-color: #dc2626;
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
         }
         
         .btn {
@@ -180,12 +109,12 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+            box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
         }
         
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(220, 38, 38, 0.4);
+            box-shadow: 0 8px 15px rgba(220, 38, 38, 0.3);
         }
         
         .summary {
@@ -196,13 +125,12 @@
         }
         
         .summary-card {
-            background: rgba(13, 17, 23, 0.8);
+            background: white;
             padding: 20px;
             border-radius: 12px;
             border-left: 4px solid;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             transition: transform 0.3s ease;
-            border: 1px solid rgba(220, 38, 38, 0.1);
         }
         
         .summary-card:hover {
@@ -223,7 +151,7 @@
         
         .summary-card h3 {
             font-size: 0.9em;
-            color: #8b949e;
+            color: #6b7280;
             margin-bottom: 8px;
             text-transform: uppercase;
             font-weight: 600;
@@ -233,15 +161,14 @@
         .summary-card .amount {
             font-size: 2em;
             font-weight: 700;
-            color: #e6edf3;
+            color: #1f2937;
         }
         
         .table-container {
             overflow-x: auto;
-            background: rgba(13, 17, 23, 0.8);
+            background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            border: 1px solid rgba(220, 38, 38, 0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
         
         table {
@@ -251,7 +178,7 @@
         }
         
         th {
-            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
             color: white;
             padding: 15px 10px;
             text-align: left;
@@ -263,23 +190,21 @@
         
         td {
             padding: 12px 10px;
-            border-bottom: 1px solid rgba(220, 38, 38, 0.1);
+            border-bottom: 1px solid #f3f4f6;
             vertical-align: top;
-            color: #e6edf3;
         }
         
         tr:hover {
-            background-color: rgba(220, 38, 38, 0.05);
+            background-color: #f8fafc;
         }
         
         .code {
             font-family: 'Courier New', monospace;
-            background: rgba(220, 38, 38, 0.1);
+            background: #f3f4f6;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 12px;
             font-weight: 600;
-            color: #dc2626;
         }
         
         .amount {
@@ -288,21 +213,21 @@
         }
         
         .amount.positive {
-            color: #10b981;
+            color: #059669;
         }
         
         .amount.negative {
-            color: #ef4444;
+            color: #dc2626;
         }
         
         .category {
             font-weight: 600;
-            color: #e6edf3;
+            color: #374151;
         }
         
         .progress-bar {
             height: 8px;
-            background: rgba(220, 38, 38, 0.1);
+            background: #e5e7eb;
             border-radius: 4px;
             overflow: hidden;
             margin-top: 5px;
@@ -321,10 +246,10 @@
         .expense-log {
             max-height: 200px;
             overflow-y: auto;
-            border: 1px solid rgba(220, 38, 38, 0.2);
+            border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
+            background: #f9fafb;
         }
         
         .expense-item {
@@ -332,7 +257,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(220, 38, 38, 0.1);
+            border-bottom: 1px solid #e5e7eb;
             font-size: 13px;
         }
         
@@ -341,13 +266,13 @@
         }
         
         .expense-date {
-            color: #8b949e;
+            color: #6b7280;
             font-size: 11px;
         }
         
         .expense-amount {
             font-weight: 600;
-            color: #ef4444;
+            color: #dc2626;
         }
         
         @media (max-width: 768px) {
@@ -358,69 +283,54 @@
             .form-group {
                 width: 100%;
             }
-            
-            .switches {
-                position: relative;
-                top: 0;
-                right: 0;
-                justify-content: center;
-                margin-bottom: 20px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="switches">
-                <div>
-                    <div class="switch-label" data-lang-key="currencySwitch">MONEDA</div>
-                    <label class="switch">
-                        <input type="checkbox" id="currencySwitch">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div>
-                    <div class="switch-label" data-lang-key="languageSwitch">IDIOMA</div>
-                    <label class="switch">
-                        <input type="checkbox" id="languageSwitch">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-            <h1 data-lang-key="title">Sistema de Control Presupuestario</h1>
-            <p data-lang-key="subtitle">Cruz Roja Dominicana - Proyecto Ready 360</p>
-            <p data-lang-key="credits">Software presupuestario hecho por Jesus Dawarly Ramirez (Administrador)</p>
+           <h1>Sistema de Control Presupuestario</h1>
+<p>Cruz Roja Dominicana - Proyecto Ready 360</p>
+<p>
+  Software presupuestario hecho por Jesus Dawarly Ramirez (Administrador)
+</p>
         </div>
         
         <div class="controls">
             <div class="add-expense">
+                <div class="form-group" style="max-width: 200px;">
+                    <label for="currencySwitch">Moneda</label>
+                    <select id="currencySwitch" onchange="toggleCurrency()">
+                        <option value="EUR" selected>Euros (€)</option>
+                        <option value="DOP">Pesos Dominicanos (RD$)</option>
+                    </select>
+                </div>
                 <div class="form-group">
-                    <label for="expenseCategory" data-lang-key="budgetItem">Partida Presupuestaria</label>
+                    <label for="expenseCategory">Partida Presupuestaria</label>
                     <select id="expenseCategory"></select>
                 </div>
                 <div class="form-group">
-                    <label for="expenseAmount" data-lang-key="amount">Monto (<span id="currencySymbol">€</span>)</label>
-                    <input type="number" id="expenseAmount" data-lang-placeholder="0.00" step="0.01">
+                    <label for="expenseAmount">Monto (€)</label>
+                    <input type="number" id="expenseAmount" placeholder="0.00" step="0.01" />
                 </div>
                 <div class="form-group">
-                    <label for="expenseDescription" data-lang-key="description">Descripción del Gasto</label>
-                    <input type="text" id="expenseDescription" data-lang-key="descriptionPlaceholder">
+                    <label for="expenseDescription">Descripción del Gasto</label>
+                    <input type="text" id="expenseDescription" placeholder="Detalle del gasto" />
                 </div>
-                <button class="btn" onclick="addExpense()" data-lang-key="addExpenseBtn">Registrar Gasto</button>
+                <button class="btn" onclick="addExpense()">Registrar Gasto</button>
             </div>
             
             <div class="summary">
                 <div class="summary-card total">
-                    <h3 data-lang-key="totalBudget">Presupuesto Total</h3>
+                    <h3>Presupuesto Total</h3>
                     <div class="amount" id="totalBudget">€217,831</div>
                 </div>
                 <div class="summary-card used">
-                    <h3 data-lang-key="totalUsed">Total Ejecutado</h3>
+                    <h3>Total Ejecutado</h3>
                     <div class="amount" id="totalUsed">€0</div>
                 </div>
                 <div class="summary-card remaining">
-                    <h3 data-lang-key="totalRemaining">Saldo Disponible</h3>
+                    <h3>Saldo Disponible</h3>
                     <div class="amount" id="totalRemaining">€217,831</div>
                 </div>
             </div>
@@ -430,107 +340,24 @@
             <table id="budgetTable">
                 <thead>
                     <tr>
-                        <th data-lang-key="codeHeader">Código</th>
-                        <th data-lang-key="itemHeader">Partida / Descripción</th>
-                        <th data-lang-key="categoryHeader">Categoría</th>
-                        <th data-lang-key="originalBudgetHeader">Presupuesto Original (<span class="currency-header">€</span>)</th>
-                        <th data-lang-key="spentHeader">Gastado (<span class="currency-header">€</span>)</th>
-                        <th data-lang-key="balanceHeader">Saldo (<span class="currency-header">€</span>)</th>
-                        <th data-lang-key="executionHeader">% Ejecución</th>
-                        <th data-lang-key="historyHeader">Historial de Gastos</th>
+                        <th>Código</th>
+                        <th>Partida / Descripción</th>
+                        <th>Categoría</th>
+                        <th>Presupuesto Original (€)</th>
+                        <th>Gastado (€)</th>
+                        <th>Saldo (€)</th>
+                        <th>% Ejecución</th>
+                        <th>Historial de Gastos</th>
                     </tr>
                 </thead>
-                <tbody id="budgetTableBody">
-                </tbody>
+                <tbody id="budgetTableBody"></tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // Configuración de idiomas
-        const translations = {
-            es: {
-                title: "Sistema de Control Presupuestario",
-                subtitle: "Cruz Roja Dominicana - Proyecto Ready 360",
-                credits: "Software presupuestario hecho por Jesus Dawarly Ramirez (Administrador)",
-                currencySwitch: "MONEDA",
-                languageSwitch: "IDIOMA",
-                budgetItem: "Partida Presupuestaria",
-                amount: "Monto",
-                description: "Descripción del Gasto",
-                descriptionPlaceholder: "Detalle del gasto",
-                addExpenseBtn: "Registrar Gasto",
-                totalBudget: "Presupuesto Total",
-                totalUsed: "Total Ejecutado",
-                totalRemaining: "Saldo Disponible",
-                codeHeader: "Código",
-                itemHeader: "Partida / Descripción",
-                categoryHeader: "Categoría",
-                originalBudgetHeader: "Presupuesto Original",
-                spentHeader: "Gastado",
-                balanceHeader: "Saldo",
-                executionHeader: "% Ejecución",
-                historyHeader: "Historial de Gastos",
-                selectItem: "Seleccione una partida...",
-                noExpenses: "No hay gastos registrados",
-                completeFields: "Por favor complete todos los campos correctamente.",
-                itemNotFound: "Partida no encontrada.",
-                categories: {
-                    "Recursos Humanos": "Recursos Humanos",
-                    "Otros Costos": "Otros Costos",
-                    "Formación": "Formación",
-                    "Comunicación": "Comunicación",
-                    "Marco de Asociación": "Marco de Asociación",
-                    "Kits Educativos": "Kits Educativos",
-                    "Formación Docentes": "Formación Docentes",
-                    "Capitalización": "Capitalización",
-                    "Costos Indirectos": "Costos Indirectos"
-                }
-            },
-            fr: {
-                title: "Système de Contrôle Budgétaire",
-                subtitle: "Croix Rouge Dominicaine - Projet Ready 360",
-                credits: "Logiciel budgétaire créé par Jesus Dawarly Ramirez (Administrateur)",
-                currencySwitch: "DEVISE",
-                languageSwitch: "LANGUE",
-                budgetItem: "Poste Budgétaire",
-                amount: "Montant",
-                description: "Description de la Dépense",
-                descriptionPlaceholder: "Détail de la dépense",
-                addExpenseBtn: "Enregistrer Dépense",
-                totalBudget: "Budget Total",
-                totalUsed: "Total Exécuté",
-                totalRemaining: "Solde Disponible",
-                codeHeader: "Code",
-                itemHeader: "Poste / Description",
-                categoryHeader: "Catégorie",
-                originalBudgetHeader: "Budget Original",
-                spentHeader: "Dépensé",
-                balanceHeader: "Solde",
-                executionHeader: "% Exécution",
-                historyHeader: "Historique des Dépenses",
-                selectItem: "Sélectionnez un poste...",
-                noExpenses: "Aucune dépense enregistrée",
-                completeFields: "Veuillez remplir tous les champs correctement.",
-                itemNotFound: "Poste non trouvé.",
-                categories: {
-                    "Recursos Humanos": "Ressources Humaines",
-                    "Otros Costos": "Autres Coûts",
-                    "Formación": "Formation",
-                    "Comunicación": "Communication",
-                    "Marco de Asociación": "Cadre d'Association",
-                    "Kits Educativos": "Kits Éducatifs",
-                    "Formación Docentes": "Formation Enseignants",
-                    "Capitalización": "Capitalisation",
-                    "Costos Indirectos": "Coûts Indirects"
-                }
-            }
-        };
-
-        // Variables globales
-        let currentLanguage = 'es';
+        const exchangeRate = 60; // 1 EUR = 60 DOP
         let currentCurrency = 'EUR';
-        const EUR_TO_DOP_RATE = 66.15; // Tasa de cambio actual
 
         const budgetData = [
             // RECURSOS HUMANOS
@@ -754,74 +581,185 @@
             },
             {
                 code: "R3A12.4.VIS",
-                description: "Visibilidad para Voluntarios",
+                description: "Material de Visibilidad para Niños",
                 category: "Kits Educativos",
-                originalBudget: 330,
+                originalBudget: 200,
                 used: 0,
                 expenses: []
-            },
-            {
-                code: "R3A12.5",
-                description: "Presentación a Comités - Coffee",
-                category: "Kits Educativos",
-                originalBudget: 30,
-                used: 0,
-                expenses: []
-            },
-            {
-                code: "R3A12.6",
-                description: "Impresión y Producción Final",
-                category: "Kits Educativos",
-                originalBudget: 19000,
-                used: 0,
-                expenses: []
-            },
-            
-            // R3.A13 - FORMACIÓN DOCENTES
-            {
-                code: "R3A13.1",
-                description: "Presentación a Directores - Coffee",
-                category: "Formación Docentes",
-                originalBudget: 300,
-                used: 0,
-                expenses: []
-            },
-            {
-                code: "R3A13.2",
-                description: "Construcción Contenido - Consultoría",
-                category: "Formación Docentes",
-                originalBudget: 8000,
-                used: 0,
-                expenses: []
-            },
-            {
-                code: "R3A13.3.SAL",
-                description: "Alquiler Salas con Coffee - Santo Domingo",
-                category: "Formación Docentes",
-                originalBudget: 1500,
-                used: 0,
-                expenses: []
-            },
-            {
-                code: "R3A13.3.FOD",
-                description: "Comida - Formación Santo Domingo",
-                category: "Formación Docentes",
-                originalBudget: 840,
-                used: 0,
-                expenses: []
-            },
-            {
-                code: "R3A13.3.IMP",
-                description: "Impresión Documentos - Formación",
-                category: "Formación Docentes",
-                originalBudget: 10,
-                used: 0,
-                expenses: []
-            },
-            {
-                code: "R3A13.3.GOD",
-                description: "Goodies - Formación",
-                category: "Formación Docentes",
-                originalBudget: 500,
-                used: 0,
-                expenses: []
+            }
+        ];
+
+        function formatCurrency(amount) {
+            if(currentCurrency === 'EUR'){
+                return new Intl.NumberFormat('es-ES', {
+                    style: 'currency',
+                    currency: 'EUR',
+                    minimumFractionDigits: 2
+                }).format(amount);
+            } else {
+                return new Intl.NumberFormat('es-DO', {
+                    style: 'currency',
+                    currency: 'DOP',
+                    minimumFractionDigits: 2
+                }).format(amount);
+            }
+        }
+
+        function convertAmount(amount, fromCurrency, toCurrency) {
+            if (fromCurrency === toCurrency) return amount;
+            if (fromCurrency === 'EUR' && toCurrency === 'DOP') return amount * exchangeRate;
+            if (fromCurrency === 'DOP' && toCurrency === 'EUR') return amount / exchangeRate;
+            return amount;
+        }
+
+        function populateCategorySelect() {
+            const select = document.getElementById('expenseCategory');
+            select.innerHTML = '';
+            budgetData.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.code;
+                option.textContent = `${item.code} - ${item.description}`;
+                select.appendChild(option);
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('budgetTableBody');
+            tbody.innerHTML = '';
+
+            budgetData.forEach(item => {
+                const remaining = item.originalBudget - item.used;
+                const usedPercent = item.originalBudget === 0 ? 0 : (item.used / item.originalBudget) * 100;
+
+                // Fila principal
+                const tr = document.createElement('tr');
+
+                tr.innerHTML = `
+                    <td class="code">${item.code}</td>
+                    <td>${item.description}</td>
+                    <td class="category">${item.category}</td>
+                    <td class="amount">${formatCurrency(item.originalBudget)}</td>
+                    <td class="amount">${formatCurrency(item.used)}</td>
+                    <td class="amount">${formatCurrency(remaining)}</td>
+                    <td>
+                        <div class="progress-bar" aria-label="Porcentaje ejecución ${usedPercent.toFixed(2)}%">
+                            <div class="progress-fill ${usedPercent > 100 ? 'over' : ''}" style="width:${Math.min(usedPercent, 100)}%"></div>
+                        </div>
+                        <small>${usedPercent.toFixed(2)}%</small>
+                    </td>
+                    <td>
+                        <div class="expense-log">
+                            ${item.expenses.length === 0 ? '<small>No hay gastos registrados</small>' : item.expenses.map(e =>
+                                `<div class="expense-item">
+                                    <span title="${e.description}">${e.description.length > 30 ? e.description.slice(0, 27) + '...' : e.description}</span>
+                                    <span class="expense-amount">${formatCurrency(e.amount)}</span>
+                                    <span class="expense-date">${new Date(e.date).toLocaleDateString()}</span>
+                                </div>`
+                            ).join('')}
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateSummary() {
+            const totalBudget = budgetData.reduce((acc, cur) => acc + cur.originalBudget, 0);
+            const totalUsed = budgetData.reduce((acc, cur) => acc + cur.used, 0);
+            const totalRemaining = totalBudget - totalUsed;
+
+            document.getElementById('totalBudget').textContent = formatCurrency(totalBudget);
+            document.getElementById('totalUsed').textContent = formatCurrency(totalUsed);
+            document.getElementById('totalRemaining').textContent = formatCurrency(totalRemaining);
+        }
+
+        function addExpense() {
+            const categoryCode = document.getElementById('expenseCategory').value;
+            const amountInput = document.getElementById('expenseAmount').value;
+            const description = document.getElementById('expenseDescription').value.trim();
+
+            const amount = parseFloat(amountInput);
+            if (!categoryCode) {
+                alert('Seleccione una partida presupuestaria');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                alert('Ingrese un monto válido mayor que cero');
+                return;
+            }
+            if (description === '') {
+                alert('Ingrese una descripción del gasto');
+                return;
+            }
+
+            const budgetItem = budgetData.find(item => item.code === categoryCode);
+            if (!budgetItem) {
+                alert('Partida presupuestaria no encontrada');
+                return;
+            }
+
+            // Verificar saldo suficiente
+            const saldo = budgetItem.originalBudget - budgetItem.used;
+            if (amount > saldo) {
+                if(!confirm('El gasto supera el saldo disponible de la partida. ¿Desea continuar?')){
+                    return;
+                }
+            }
+
+            // Registrar gasto
+            const expense = {
+                amount,
+                description,
+                date: new Date().toISOString()
+            };
+
+            budgetItem.expenses.push(expense);
+            budgetItem.used += amount;
+
+            // Limpiar inputs
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseDescription').value = '';
+
+            renderTable();
+            updateSummary();
+        }
+
+        function toggleCurrency() {
+            const select = document.getElementById('currencySwitch');
+            const newCurrency = select.value;
+            if(newCurrency === currentCurrency) return;
+
+            // Convertir todos los valores de budgetData a la nueva moneda
+            budgetData.forEach(item => {
+                item.originalBudget = convertAmount(item.originalBudget, currentCurrency, newCurrency);
+                item.used = convertAmount(item.used, currentCurrency, newCurrency);
+                item.expenses.forEach(expense => {
+                    expense.amount = convertAmount(expense.amount, currentCurrency, newCurrency);
+                });
+            });
+
+            currentCurrency = newCurrency;
+
+            // Cambiar etiquetas y placeholder
+            const amountInput = document.getElementById('expenseAmount');
+            const amountLabel = document.querySelector('label[for="expenseAmount"]');
+            if(currentCurrency === 'EUR'){
+                amountLabel.textContent = 'Monto (€)';
+                amountInput.placeholder = '0.00';
+            } else {
+                amountLabel.textContent = 'Monto (RD$)';
+                amountInput.placeholder = '0.00';
+            }
+
+            renderTable();
+            updateSummary();
+        }
+
+        // Inicialización
+        populateCategorySelect();
+        renderTable();
+        updateSummary();
+    </script>
+</body>
+</html>
