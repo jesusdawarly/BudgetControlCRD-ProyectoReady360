@@ -65,14 +65,6 @@
             background: #f8fafc;
             border-bottom: 2px solid #e2e8f0;
 
-            <div class="form-group" style="max-width: 200px;">
-  <label for="currencySwitch">Moneda</label>
-  <select id="currencySwitch" onchange="toggleCurrency()">
-    <option value="EUR" selected>Euros (€)</option>
-    <option value="DOP">Pesos Dominicanos (RD$)</option>
-  </select>
-</div>
-
         }
         
         .add-expense {
@@ -311,6 +303,13 @@
                     <label for="expenseCategory">Partida Presupuestaria</label>
                     <select id="expenseCategory"></select>
                 </div>
+                <div class="form-group" style="max-width: 200px;">
+  <label for="currencySwitch">Moneda</label>
+  <select id="currencySwitch" onchange="toggleCurrency()">
+    <option value="EUR" selected>Euros (€)</option>
+    <option value="DOP">Pesos Dominicanos (RD$)</option>
+  </select>
+</div>
                 <div class="form-group">
                     <label for="expenseAmount">Monto (€)</label>
                     <input type="number" id="expenseAmount" placeholder="0.00" step="0.01">
