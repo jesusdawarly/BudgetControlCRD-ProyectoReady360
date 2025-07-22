@@ -89,6 +89,41 @@
             box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
         }
 
+        .export-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .export-btn {
+            background: white;
+            color: #dc2626;
+            border: 2px solid #dc2626;
+            padding: 12px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .export-btn:hover {
+            background: #dc2626;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        .excel-btn:hover {
+            background: #16a34a;
+            border-color: #16a34a;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+        }
+
+        .pdf-btn:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+
         .summary {
             display: flex;
             gap: 20px;
@@ -313,6 +348,14 @@
             <button class="currency-toggle" onclick="toggleCurrency()">
                 <span id="currency-btn">Cambiar a RD$</span>
             </button>
+            <div class="export-controls">
+                <button class="export-btn excel-btn" onclick="exportToExcel()">
+                    Exportar Excel
+                </button>
+                <button class="export-btn pdf-btn" onclick="exportToPDF()">
+                    Exportar PDF
+                </button>
+            </div>
             <div class="summary">
                 <div class="summary-card">
                     <h3>Presupuesto Total</h3>
@@ -353,6 +396,9 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script>
         let isEUR = true;
         const EUR_TO_DOP = 67.50; // Tasa de cambio aproximada
@@ -653,7 +699,7 @@
                 category: "",
                 code: "SNR5A3",
                 description: "Gastos de viaje distribución kits",
-                budget: 0,
+                budget: 1500,
                 spent: 0,
                 expenses: []
             },
@@ -794,8 +840,238 @@
             localStorage.setItem('budgetData', JSON.stringify(budgetData));
         }
 
+        // Exportar a Excel
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            
+            // Crear hoja de resumen
+            const summaryData = [
+                ['SISTEMA DE GESTIÓN PRESUPUESTARIA'],
+                ['Cruz Roja Dominicana'],
+                [''],
+                ['Fecha de Exportación:', new Date().toLocaleDateString('es-DO')],
+                ['Moneda:', isEUR ? 'EUR (€)' : 'RD$ (Pesos Dominicanos)'],
+                [''],
+                ['RESUMEN FINANCIERO'],
+                ['Concepto', 'Monto'],
+                ['Presupuesto Total', formatCurrencyPlain(budgetData.reduce((sum, item) => sum + item.budget, 0))],
+                ['Total Gastado', formatCurrencyPlain(budgetData.reduce((sum, item) => sum + item.spent, 0))],
+                ['Total Disponible', formatCurrencyPlain(budgetData.reduce((sum, item) => sum + (item.budget - item.spent), 0))],
+                [''],
+                ['DETALLE POR PARTIDAS']
+            ];
+
+            // Agregar datos de partidas
+            summaryData.push(['Código', 'Descripción', 'Presupuesto', 'Gastado', 'Restante', '% Ejecución']);
+            
+            let currentCategory = '';
+            budgetData.forEach(item => {
+                if (item.category && item.category !== currentCategory) {
+                    summaryData.push([item.category, '', '', '', '', '']);
+                    currentCategory = item.category;
+                }
+                
+                const remaining = item.budget - item.spent;
+                const percentage = item.budget > 0 ? ((item.spent / item.budget) * 100).toFixed(1) : '0.0';
+                
+                summaryData.push([
+                    item.code,
+                    item.description,
+                    formatCurrencyPlain(item.budget),
+                    formatCurrencyPlain(item.spent),
+                    formatCurrencyPlain(remaining),
+                    percentage + '%'
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(summaryData);
+            
+            // Aplicar estilos básicos
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell_address = XLSX.utils.encode_cell({c: C, r: R});
+                    if (!ws[cell_address]) continue;
+                    
+                    // Títulos principales
+                    if (R === 0 || R === 6) {
+                        ws[cell_address].s = {
+                            font: { bold: true, sz: 14 },
+                            alignment: { horizontal: 'center' }
+                        };
+                    }
+                    // Headers de tabla
+                    else if (R === 7 || R === 13) {
+                        ws[cell_address].s = {
+                            font: { bold: true },
+                            fill: { fgColor: { rgb: "DC2626" } }
+                        };
+                    }
+                }
+            }
+            
+            // Ajustar ancho de columnas
+            ws['!cols'] = [
+                { width: 15 }, { width: 50 }, { width: 15 }, 
+                { width: 15 }, { width: 15 }, { width: 12 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Resumen Presupuestario");
+            
+            // Crear hoja de gastos detallados
+            const expenseData = [
+                ['REGISTRO DETALLADO DE GASTOS'],
+                [''],
+                ['Código', 'Partida', 'Fecha', 'Descripción Gasto', 'Monto']
+            ];
+
+            budgetData.forEach(item => {
+                if (item.expenses.length > 0) {
+                    item.expenses.forEach(expense => {
+                        expenseData.push([
+                            item.code,
+                            item.description,
+                            expense.date,
+                            expense.description,
+                            formatCurrencyPlain(expense.amount)
+                        ]);
+                    });
+                }
+            });
+
+            const wsExpenses = XLSX.utils.aoa_to_sheet(expenseData);
+            wsExpenses['!cols'] = [
+                { width: 15 }, { width: 40 }, { width: 12 }, 
+                { width: 30 }, { width: 15 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, wsExpenses, "Gastos Detallados");
+            
+            // Generar archivo
+            const fileName = `Presupuesto_CruzRoja_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // Exportar a PDF
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape para más espacio
+            
+            // Header
+            doc.setFillColor(220, 38, 38);
+            doc.rect(0, 0, 297, 30, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('SISTEMA DE GESTIÓN PRESUPUESTARIA', 148, 15, { align: 'center' });
+            doc.setFontSize(14);
+            doc.text('Cruz Roja Dominicana', 148, 25, { align: 'center' });
+            
+            // Información general
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`Fecha: ${new Date().toLocaleDateString('es-DO')}`, 20, 45);
+            doc.text(`Moneda: ${isEUR ? 'EUR (€)' : 'RD$ (Pesos Dominicanos)'}`, 20, 52);
+            doc.text(`Administrador: Jesús D. Ramírez`, 20, 59);
+            
+            // Resumen financiero
+            const totalBudget = budgetData.reduce((sum, item) => sum + item.budget, 0);
+            const totalSpent = budgetData.reduce((sum, item) => sum + item.spent, 0);
+            const totalRemaining = totalBudget - totalSpent;
+            
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('RESUMEN FINANCIERO', 20, 75);
+            
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Presupuesto Total: ${formatCurrencyPlain(totalBudget)}`, 20, 85);
+            doc.text(`Total Gastado: ${formatCurrencyPlain(totalSpent)}`, 20, 92);
+            doc.text(`Disponible: ${formatCurrencyPlain(totalRemaining)}`, 20, 99);
+            
+            // Tabla de partidas
+            const tableData = [];
+            let currentCategory = '';
+            
+            budgetData.forEach(item => {
+                if (item.category && item.category !== currentCategory) {
+                    tableData.push([
+                        { content: item.category, styles: { fillColor: [254, 202, 202], fontStyle: 'bold' } },
+                        '', '', '', '', ''
+                    ]);
+                    currentCategory = item.category;
+                }
+                
+                const remaining = item.budget - item.spent;
+                const percentage = item.budget > 0 ? ((item.spent / item.budget) * 100).toFixed(1) : '0.0';
+                
+                tableData.push([
+                    item.code,
+                    item.description.length > 40 ? item.description.substring(0, 40) + '...' : item.description,
+                    formatCurrencyPlain(item.budget),
+                    formatCurrencyPlain(item.spent),
+                    formatCurrencyPlain(remaining),
+                    percentage + '%'
+                ]);
+            });
+            
+            doc.autoTable({
+                head: [['Código', 'Descripción', 'Presupuesto', 'Gastado', 'Restante', '% Ejec.']],
+                body: tableData,
+                startY: 110,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [220, 38, 38],
+                    textColor: [255, 255, 255],
+                    fontSize: 9,
+                    fontStyle: 'bold'
+                },
+                bodyStyles: {
+                    fontSize: 8
+                },
+                columnStyles: {
+                    0: { cellWidth: 25 },
+                    1: { cellWidth: 80 },
+                    2: { cellWidth: 30 },
+                    3: { cellWidth: 30 },
+                    4: { cellWidth: 30 },
+                    5: { cellWidth: 20 }
+                }
+            });
+            
+            // Footer
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(128, 128, 128);
+                doc.text(`Software Presupuestario hecho por Jesús D. Ramírez (Administrador)`, 148, 200, { align: 'center' });
+                doc.text(`Página ${i} de ${pageCount}`, 275, 200);
+            }
+            
+            // Guardar
+            const fileName = `Presupuesto_CruzRoja_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+        }
+
         // Formatear moneda
         function formatCurrency(amount) {
+            if (isEUR) {
+                return new Intl.NumberFormat('es-ES', {
+                    style: 'currency',
+                    currency: 'EUR'
+                }).format(amount);
+            } else {
+                return new Intl.NumberFormat('es-DO', {
+                    style: 'currency',
+                    currency: 'DOP'
+                }).format(amount * EUR_TO_DOP);
+            }
+        }
+
+        // Función auxiliar para formatear moneda sin símbolos HTML
+        function formatCurrencyPlain(amount) {
             if (isEUR) {
                 return new Intl.NumberFormat('es-ES', {
                     style: 'currency',
@@ -812,7 +1088,7 @@
         // Alternar moneda
         function toggleCurrency() {
             isEUR = !isEUR;
-            document.getElementById('currency-btn').textContent = isEUR ? '💱 Cambiar a RD$' : '💱 Cambiar a EUR';
+            document.getElementById('currency-btn').textContent = isEUR ? 'Cambiar a RD$' : 'Cambiar a EUR';
             renderTable();
             updateSummary();
         }
