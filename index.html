@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión Presupuestaria - Cruz Roja Dominicana</title>
+    <title>Sistema Presupuestario - Cruz Roja Dominicana</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -13,1182 +15,1145 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
             min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            backdrop-filter: blur(10px);
         }
 
         .header {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
-            color: white;
-            padding: 30px;
+            background: linear-gradient(135deg, #dc143c 0%, #b71c1c 100%);
+            padding: 2rem;
             text-align: center;
-            position: relative;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-            opacity: 0.3;
+            box-shadow: 0 4px 20px rgba(220, 20, 60, 0.3);
+            border-bottom: 3px solid #fff;
         }
 
         .header h1 {
             font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 0.5rem;
         }
 
         .header p {
             font-size: 1.1rem;
             opacity: 0.9;
-            position: relative;
-            z-index: 1;
         }
 
         .controls {
-            padding: 30px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
             display: flex;
-            gap: 20px;
+            justify-content: space-between;
             align-items: center;
+            padding: 1.5rem 2rem;
+            background: rgba(220, 20, 60, 0.1);
+            border-bottom: 1px solid rgba(220, 20, 60, 0.3);
             flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .currency-toggle {
-            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
-        }
-
-        .currency-toggle:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
-        }
-
-        .export-controls {
             display: flex;
-            gap: 10px;
+            background: rgba(220, 20, 60, 0.2);
+            border-radius: 25px;
+            padding: 0.3rem;
+            border: 2px solid #dc143c;
+        }
+
+        .currency-btn {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .currency-btn.active {
+            background: linear-gradient(135deg, #dc143c, #b71c1c);
+            box-shadow: 0 2px 10px rgba(220, 20, 60, 0.4);
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 1rem;
         }
 
         .export-btn {
-            background: white;
-            color: #dc2626;
-            border: 2px solid #dc2626;
-            padding: 12px 20px;
-            border-radius: 50px;
+            padding: 0.8rem 1.5rem;
+            border: 2px solid #dc143c;
+            background: linear-gradient(135deg, #dc143c, #b71c1c);
+            color: white;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .export-btn:hover {
-            background: #dc2626;
-            color: white;
+            background: linear-gradient(135deg, #b71c1c, #8d1414);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+            box-shadow: 0 4px 15px rgba(220, 20, 60, 0.4);
         }
 
-        .excel-btn:hover {
-            background: #16a34a;
-            border-color: #16a34a;
-            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
         }
 
-        .pdf-btn:hover {
-            background: #dc2626;
-            border-color: #dc2626;
+        .budget-grid {
+            display: grid;
+            gap: 2rem;
+            margin-bottom: 2rem;
         }
 
-        .summary {
-            display: flex;
-            gap: 20px;
-            flex: 1;
-            flex-wrap: wrap;
-        }
-
-        .summary-card {
-            background: white;
-            padding: 20px;
+        .budget-category {
+            background: linear-gradient(135deg, rgba(45, 45, 45, 0.9), rgba(30, 30, 30, 0.9));
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            flex: 1;
-            min-width: 200px;
-            border-left: 4px solid #dc2626;
-            transition: transform 0.3s ease;
+            padding: 1.5rem;
+            border: 1px solid rgba(220, 20, 60, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
 
-        .summary-card:hover {
+        .budget-category:hover {
             transform: translateY(-5px);
-        }
-
-        .summary-card h3 {
-            color: #dc2626;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
-
-        .summary-card .amount {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .table-container {
-            padding: 30px;
-            overflow-x: auto;
-        }
-
-        .budget-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .budget-table th {
-            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-            color: white;
-            padding: 20px 15px;
-            text-align: left;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 0.9rem;
-        }
-
-        .budget-table td {
-            padding: 15px;
-            border-bottom: 1px solid #e9ecef;
-            vertical-align: middle;
-        }
-
-        .budget-table tbody tr {
-            transition: background-color 0.3s ease;
-        }
-
-        .budget-table tbody tr:hover {
-            background-color: #f8f9fa;
+            border-color: #dc143c;
+            box-shadow: 0 12px 40px rgba(220, 20, 60, 0.2);
         }
 
         .category-header {
-            background: #fecaca !important;
-            font-weight: 700;
-            color: #991b1b;
-            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(220, 20, 60, 0.3);
         }
 
-        .code {
-            font-family: 'Courier New', monospace;
-            background: #fecaca;
-            padding: 4px 8px;
-            border-radius: 6px;
+        .category-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #dc143c;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .category-total {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #dc143c, #b71c1c);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(220, 20, 60, 0.3);
+        }
+
+        .budget-items {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .budget-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1rem;
+            border-left: 4px solid #dc143c;
+            transition: all 0.3s ease;
+        }
+
+        .budget-item:hover {
+            background: rgba(220, 20, 60, 0.1);
+            transform: translateX(5px);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .item-code {
+            font-weight: 700;
+            color: #dc143c;
             font-size: 0.9rem;
+            background: rgba(220, 20, 60, 0.1);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            border: 1px solid rgba(220, 20, 60, 0.3);
+        }
+
+        .item-amount {
             font-weight: 600;
-            color: #991b1b;
+            font-size: 1.1rem;
+            color: #4ade80;
         }
 
-        .amount-cell {
-            text-align: right;
-            font-weight: 600;
-            color: #2c3e50;
+        .item-description {
+            color: #e5e5e5;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin-bottom: 0.8rem;
         }
 
-        .spent-input {
-            border: 2px solid #e9ecef;
-            padding: 8px 12px;
-            border-radius: 8px;
-            width: 120px;
-            text-align: right;
-            transition: border-color 0.3s ease;
-        }
-
-        .spent-input:focus {
-            outline: none;
-            border-color: #dc2626;
-            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-        }
-
-        .remaining {
-            font-weight: 700;
-        }
-
-        .remaining.positive {
-            color: #28a745;
-        }
-
-        .remaining.negative {
-            color: #dc3545;
+        .item-progress {
+            margin-bottom: 1rem;
         }
 
         .progress-bar {
             width: 100%;
             height: 8px;
-            background: #e9ecef;
-            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            border-radius: 4px;
-            transition: width 0.3s ease;
+            background: linear-gradient(90deg, #dc143c, #b71c1c);
+            transition: all 0.3s ease;
+            border-radius: 10px;
         }
 
-        .progress-fill.over {
-            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+        .progress-text {
+            font-size: 0.8rem;
+            color: #ccc;
+            margin-top: 0.3rem;
+            text-align: right;
         }
 
-        .add-expense {
-            background: #28a745;
-            color: white;
+        .expense-form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .expense-input {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.6rem;
+            border: 2px solid rgba(220, 20, 60, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .expense-input:focus {
+            outline: none;
+            border-color: #dc143c;
+            box-shadow: 0 0 10px rgba(220, 20, 60, 0.3);
+        }
+
+        .add-expense-btn {
+            padding: 0.6rem 1rem;
             border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
+            background: linear-gradient(135deg, #dc143c, #b71c1c);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .add-expense-btn:hover {
+            background: linear-gradient(135deg, #b71c1c, #8d1414);
+            transform: translateY(-1px);
+        }
+
+        .expenses-list {
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .expense-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            border-left: 3px solid #dc143c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .expense-details {
+            flex: 1;
+        }
+
+        .expense-description {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.2rem;
+        }
+
+        .expense-date {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        .expense-amount {
+            font-weight: 700;
+            color: #ef4444;
+            margin-right: 1rem;
+        }
+
+        .delete-expense-btn {
+            background: #ef4444;
+            border: none;
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 0.8rem;
             transition: all 0.3s ease;
         }
 
-        .add-expense:hover {
-            background: #218838;
-            transform: translateY(-1px);
+        .delete-expense-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
         }
 
-        .expense-log {
-            margin-top: 10px;
-            font-size: 0.8rem;
-            color: #6c757d;
+        .signature {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(220, 20, 60, 0.1), rgba(183, 28, 28, 0.1));
+            border-radius: 15px;
+            border: 1px solid rgba(220, 20, 60, 0.3);
         }
 
-        .expense-item {
-            background: #f8f9fa;
-            padding: 5px 10px;
-            margin: 2px 0;
-            border-radius: 4px;
-            border-left: 3px solid #dc2626;
+        .signature-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #dc143c;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(220, 20, 60, 0.1), rgba(183, 28, 28, 0.1));
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 2px solid rgba(220, 20, 60, 0.3);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: #dc143c;
+            box-shadow: 0 8px 25px rgba(220, 20, 60, 0.2);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4ade80;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #ccc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
         }
 
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            
             .controls {
                 flex-direction: column;
                 align-items: stretch;
             }
-            
-            .summary {
+
+            .export-buttons {
+                justify-content: center;
+            }
+
+            .expense-form {
                 flex-direction: column;
             }
-            
-            .budget-table {
-                font-size: 0.9rem;
-            }
-            
-            .budget-table th,
-            .budget-table td {
-                padding: 10px 8px;
-            }
-        }
 
-        .footer-signature {
-            background: #f8f9fa;
-            text-align: center;
-            padding: 20px;
-            border-top: 2px solid #dc2626;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-
-        .footer-signature strong {
-            color: #dc2626;
-            font-weight: 700;
+            .expense-input {
+                min-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Sistema de Gestión Presupuestaria</h1>
-            <h3>CRUZ ROJA DOMINICANA - PROYECTO READY 360</h3>
-        </div>
+    <div class="header">
+        <h1>SISTEMA DE GESTIÓN PRESUPUESTARIA</h1>
+        <h3>PROYECTO READY 360° - CRUZ ROJA DOMINICANA</h3>
+        <p>JESUS D. RAMIREZ - ADMINISTRADOR DEL PROYECTO</p>
+    </div>
 
-        <div class="controls">
-            <button class="currency-toggle" onclick="toggleCurrency()">
-                <span id="currency-btn">Cambiar a RD$</span>
-            </button>
-            <div class="export-controls">
-                <button class="export-btn excel-btn" onclick="exportToExcel()">
-                    Exportar Excel
-                </button>
-                <button class="export-btn pdf-btn" onclick="exportToPDF()">
-                    Exportar PDF
-                </button>
-            </div>
-            <div class="summary">
-                <div class="summary-card">
-                    <h3>Presupuesto Total</h3>
-                    <div class="amount" id="total-budget">€217,831</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Total Gastado</h3>
-                    <div class="amount" id="total-spent">€0</div>
-                </div>
-                <div class="summary-card">
-                    <h3>Disponible</h3>
-                    <div class="amount" id="total-remaining">€217,831</div>
-                </div>
-            </div>
+    <div class="controls">
+        <div class="currency-toggle">
+            <button class="currency-btn active" onclick="setCurrency('EUR')">EUR (€)</button>
+            <button class="currency-btn" onclick="setCurrency('DOP')">DOP (RD$)</button>
         </div>
-
-        <div class="table-container">
-            <table class="budget-table" id="budgetTable">
-                <thead>
-                    <tr>
-                        <th>Código Partida</th>
-                        <th>Descripción/Concepto</th>
-                        <th>Presupuesto</th>
-                        <th>Gastado</th>
-                        <th>Restante</th>
-                        <th>Progreso</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="budgetBody">
-                </tbody>
-            </table>
-        </div>
-
-        <div class="footer-signature">
-            <p><strong>Software Presupuestario hecho por Jesús D. Ramírez (Administrador)</strong></p>
-            <p>Powered by DGP · Dawarly Gestión Presupuestaria</p>
+        <div class="export-buttons">
+            <button class="export-btn" onclick="exportToExcel()">📊 Exportar Excel</button>
+            <button class="export-btn" onclick="exportToPDF()">📄 Exportar PDF</button>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <div class="container">
+        <div class="summary-stats" id="summaryStats">
+            <!-- Stats will be populated here -->
+        </div>
+
+        <div class="budget-grid" id="budgetGrid">
+            <!-- Budget items will be populated here -->
+        </div>
+
+        <div class="signature">
+            <p class="signature-text">Software Presupuestario hecho por Jesús D. Ramírez (Administrador)</p>
+        </div>
+    </div>
+
     <script>
-        let isEUR = true;
-        const EUR_TO_DOP = 67.50; // Tasa de cambio aproximada
+        // Exchange rate EUR to DOP (approximate)
+        const EXCHANGE_RATE = 59.50;
+        let currentCurrency = 'EUR';
+        let expenses = JSON.parse(localStorage.getItem('budgetExpenses')) || {};
 
-        const budgetData = [
-            // RECURSOS HUMANOS
-            { 
-                category: "RECURSOS HUMANOS",
-                code: "HR.SUP",
-                description: "Supervisor Log/Admin - 20 meses",
-                budget: 20000,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "HR.PM",
-                description: "Coordinador del proyecto - 24 meses",
-                budget: 24000,
-                spent: 0,
-                expenses: []
-            },
-            
-            // OTROS COSTOS
-            { 
-                category: "OTROS COSTOS",
-                code: "APUISN",
-                description: "Costos de funcionamiento - 18 meses",
-                budget: 7200,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "APUISN",
-                description: "Compra de equipos",
-                budget: 1660,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNFORM",
-                description: "Capacitación NS-FRC/AFD (viáticos y transporte)",
-                budget: 252,
-                spent: 0,
-                expenses: []
-            },
-
-            // R0 COMUNICACIÓN
-            { 
-                category: "R0 - COMUNICACIÓN Y OBLIGACIONES DONANTE",
-                code: "SNR0A0",
-                description: "Transporte herramientas comunicación desde Guadalupe",
-                budget: 200,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR0",
-                description: "Gastos de movilización (taxi)",
-                budget: 2000,
-                spent: 0,
-                expenses: []
-            },
-
-            // R3.A11 MARCO DE ALIANZAS
-            { 
-                category: "R3.A11 - MARCO ALIANZAS CON STAKEHOLDERS",
-                code: "R50IND",
-                description: "Línea base/final - indicadores",
-                budget: 30000,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A1",
-                description: "Visibilidad para el proyecto",
-                budget: 2000,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A1",
-                description: "Producción elementos de visibilidad",
-                budget: 4000,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A1",
-                description: "COPIL y COTECH - Coffee",
-                budget: 500,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A1",
-                description: "COPIL y COTECH - Impresiones",
-                budget: 60,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A1",
-                description: "COPIL y COTECH - Goodies",
-                budget: 374,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A1",
-                description: "Reunión lanzamiento comités - Coffee",
-                budget: 75,
-                spent: 0,
-                expenses: []
-            },
-
-            // R3.A12 KITS EDUCATIVOS
-            { 
-                category: "R3.A12 - CREACIÓN KITS EDUCATIVOS",
-                code: "SNR5A2",
-                description: "Creación identidad visual del proyecto",
-                budget: 8000,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Test de visibilidad del proyecto",
-                budget: 12000,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Preparación material didáctico + currícula",
-                budget: 49000,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Movilización Comités Técnicos y Pedagógicos",
-                budget: 240,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Impresión prototipo herramientas",
-                budget: 1500,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Snacks para niños - pruebas",
-                budget: 60,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Viáticos voluntarios - pruebas (15 vol x 4 días)",
-                budget: 600,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Viáticos jefe proyecto - pruebas",
-                budget: 80,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Capacitación voluntarios - comida",
-                budget: 425,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Capacitación voluntarios - viáticos",
-                budget: 150,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Material capacitación (cuadernos/bolígrafos)",
-                budget: 225,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Visibilidad para voluntarios",
-                budget: 330,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Presentación herramientas - coffee",
-                budget: 30,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A2",
-                description: "Impresión y producción final",
-                budget: 19000,
-                spent: 0,
-                expenses: []
-            },
-
-            // R3.A13 CAPACITACIÓN DOCENTES
-            { 
-                category: "R3.A13 - CAPACITACIÓN DOCENTES Y DISTRIBUCIÓN KITS",
-                code: "SNR5A3",
-                description: "Presentación proyecto a directores - coffee",
-                budget: 300,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A3",
-                description: "Construcción contenido => consulta",
-                budget: 8000,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A3",
-                description: "Capacitación Santo Domingo - alquiler salas",
-                budget: 1500,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A3",
-                description: "Capacitación Santo Domingo - comida",
-                budget: 840,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A3",
-                description: "Capacitación Santo Domingo - impresiones",
-                budget: 10,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A3",
-                description: "Capacitación Santo Domingo - goodies",
-                budget: 500,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A3",
-                description: "Capacitación Santo Domingo - viáticos",
-                budget: 200,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A3",
-                description: "Gastos de viaje distribución kits",
-                budget: 0,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A3",
-                description: "Monitoreo y apoyo escuelas - viáticos",
-                budget: 100,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A3",
-                description: "Reuniones con maestros - coffee",
-                budget: 600,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A3",
-                description: "Reuniones con maestros - coffee(Gastos de viaje)",
-                budget: 600,
-                spent: 0,
-                expenses: []
-            },
-
-            // R3.A14 CAPITALIZACIÓN Y CIERRE
-            { 
-                category: "R3.A14 - CAPITALIZACIÓN Y CIERRE PROYECTO",
-                code: "SNR5A4",
-                description: "Taller DRR escuelas - viáticos",
-                budget: 152,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A4",
-                description: "Taller DRR escuelas - transporte",
-                budget: 100,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A4",
-                description: "Balance comité - coffee",
-                budget: 180,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A4",
-                description: "Balance nivel escuelas - coffee",
-                budget: 900,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A4",
-                description: "Ceremonia cierre - coffee",
-                budget: 500,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A4",
-                description: "Ceremonia cierre - impresiones",
-                budget: 60,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A4",
-                description: "Ceremonia cierre - goodies",
-                budget: 500,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A4",
-                description: "Infográfico resultados proyecto",
-                budget: 1500,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A4",
-                description: "Video testimonios estudiantes",
-                budget: 10000,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A4",
-                description: "Taller fin proyecto - viáticos",
-                budget: 684,
-                spent: 0,
-                expenses: []
-            },
-            { 
-                category: "",
-                code: "SNR5A4",
-                description: "Taller fin proyecto - transporte",
-                budget: 300,
-                spent: 0,
-                expenses: []
-            },
-
-            // COSTOS INDIRECTOS
-            { 
-                category: "COSTOS INDIRECTOS",
-                code: "INDIRECT",
-                description: "Costos indirectos (3% del total)",
-                budget: 6345,
-                spent: 0,
-                expenses: []
-            }
-        ];
-
-        // Cargar datos del localStorage
-        function loadData() {
-            const saved = localStorage.getItem('budgetData');
-            if (saved) {
-                const parsedData = JSON.parse(saved);
-                budgetData.forEach((item, index) => {
-                    if (parsedData[index]) {
-                        item.spent = parsedData[index].spent || 0;
-                        item.expenses = parsedData[index].expenses || [];
+        // Complete budget data structure
+        const budgetData = {
+            "Recursos Humanos": {
+                total: 44000,
+                items: [
+                    {
+                        code: "HR.SUP",
+                        description: "Personal Logístico/Administrativo - Supervisor de recursos humanos para apoyo logístico y administrativo del proyecto",
+                        amount: 20000,
+                        details: "1 RH × 20 meses × €1,000"
+                    },
+                    {
+                        code: "HR.PM",
+                        description: "Coordinador del Proyecto - Gestión y coordinación general del proyecto de educación en riesgos",
+                        amount: 24000,
+                        details: "1 RH × 24 meses × €1,000"
                     }
-                });
-            }
-        }
-
-        // Guardar datos en localStorage
-        function saveData() {
-            localStorage.setItem('budgetData', JSON.stringify(budgetData));
-        }
-
-        // Exportar a Excel
-        function exportToExcel() {
-            const wb = XLSX.utils.book_new();
-            
-            // Crear hoja de resumen
-            const summaryData = [
-                ['SISTEMA DE GESTIÓN PRESUPUESTARIA'],
-                ['Cruz Roja Dominicana'],
-                [''],
-                ['Fecha de Exportación:', new Date().toLocaleDateString('es-DO')],
-                ['Moneda:', isEUR ? 'EUR (€)' : 'RD$ (Pesos Dominicanos)'],
-                [''],
-                ['RESUMEN FINANCIERO'],
-                ['Concepto', 'Monto'],
-                ['Presupuesto Total', formatCurrencyPlain(budgetData.reduce((sum, item) => sum + item.budget, 0))],
-                ['Total Gastado', formatCurrencyPlain(budgetData.reduce((sum, item) => sum + item.spent, 0))],
-                ['Total Disponible', formatCurrencyPlain(budgetData.reduce((sum, item) => sum + (item.budget - item.spent), 0))],
-                [''],
-                ['DETALLE POR PARTIDAS']
-            ];
-
-            // Agregar datos de partidas
-            summaryData.push(['Código', 'Descripción', 'Presupuesto', 'Gastado', 'Restante', '% Ejecución']);
-            
-            let currentCategory = '';
-            budgetData.forEach(item => {
-                if (item.category && item.category !== currentCategory) {
-                    summaryData.push([item.category, '', '', '', '', '']);
-                    currentCategory = item.category;
-                }
-                
-                const remaining = item.budget - item.spent;
-                const percentage = item.budget > 0 ? ((item.spent / item.budget) * 100).toFixed(1) : '0.0';
-                
-                summaryData.push([
-                    item.code,
-                    item.description,
-                    formatCurrencyPlain(item.budget),
-                    formatCurrencyPlain(item.spent),
-                    formatCurrencyPlain(remaining),
-                    percentage + '%'
-                ]);
-            });
-
-            const ws = XLSX.utils.aoa_to_sheet(summaryData);
-            
-            // Aplicar estilos básicos
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            for (let R = range.s.r; R <= range.e.r; ++R) {
-                for (let C = range.s.c; C <= range.e.c; ++C) {
-                    const cell_address = XLSX.utils.encode_cell({c: C, r: R});
-                    if (!ws[cell_address]) continue;
-                    
-                    // Títulos principales
-                    if (R === 0 || R === 6) {
-                        ws[cell_address].s = {
-                            font: { bold: true, sz: 14 },
-                            alignment: { horizontal: 'center' }
-                        };
+                ]
+            },
+            "Otros Costos": {
+                total: 9112,
+                items: [
+                    {
+                        code: "APUISN.FUNC",
+                        description: "Costos de Funcionamiento - Gastos operacionales generales del proyecto",
+                        amount: 7200,
+                        details: "1 Lump sum × 18 meses × €400"
+                    },
+                    {
+                        code: "APUISN.EQUIP",
+                        description: "Compra de Equipos - Adquisición de equipamiento necesario para el proyecto",
+                        amount: 1660,
+                        details: "1 Lump sum × 2 × €830"
+                    },
+                    {
+                        code: "SNFORM.VIATIC",
+                        description: "Capacitación NS - Viáticos para formación FRC/AFD en gestión delegada",
+                        amount: 152,
+                        details: "1 Log/admin × 4 días × €38"
+                    },
+                    {
+                        code: "SNFORM.TRANSP",
+                        description: "Transporte Capacitación - Requerimientos de taxi para capacitación",
+                        amount: 100,
+                        details: "1 Log/admin × 2 viajes × €50"
                     }
-                    // Headers de tabla
-                    else if (R === 7 || R === 13) {
-                        ws[cell_address].s = {
-                            font: { bold: true },
-                            fill: { fgColor: { rgb: "DC2626" } }
-                        };
+                ]
+            },
+            "R0 - Comunicación y Obligaciones": {
+                total: 300,
+                items: [
+                    {
+                        code: "SNR0A0.CARGO",
+                        description: "Sobrepeso y Transporte - Cargo por sobrepeso y transporte de herramientas de comunicación",
+                        amount: 200,
+                        details: "1 Lump sum × 1"
+                    },
+                    {
+                        code: "SNR0.MOVIL",
+                        description: "Gastos de Movilización - Transporte en taxi para actividades del proyecto",
+                        amount: 100,
+                        details: "1 Lump sum × 1"
                     }
-                }
+                ]
+            },
+            "R3.A11 - Marco de Asociación": {
+                total: 37009,
+                items: [
+                    {
+                        code: "R50IND.LINEA",
+                        description: "Línea Base e Indicadores - Desarrollo de línea base y evaluación final del proyecto",
+                        amount: 30000,
+                        details: "1 Package × 1 territorio"
+                    },
+                    {
+                        code: "SNR5A1.VISIB",
+                        description: "Visibilidad del Proyecto - Elementos de comunicación y promoción del proyecto",
+                        amount: 2000,
+                        details: "1 territorio × 1 package"
+                    },
+                    {
+                        code: "SNR5A1.PROD",
+                        description: "Producción de Visibilidad - Creación de materiales de comunicación",
+                        amount: 2000,
+                        details: "1 territorio × 1 package"
+                    },
+                    {
+                        code: "SNR5A1.COFFEE1",
+                        description: "Coffee Break COPIL/COTECH - Refrigerios para reuniones de comités",
+                        amount: 500,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A1.PRINT1",
+                        description: "Impresiones COPIL/COTECH - Material impreso para comités",
+                        amount: 60,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A1.GOOD1",
+                        description: "Goodies COPIL/COTECH - Obsequios promocionales para comités",
+                        amount: 374,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A1.COFFEE2",
+                        description: "Coffee Break Lanzamiento - Refrigerios para reuniones de lanzamiento de comités",
+                        amount: 75,
+                        details: "5 comités × 1 lump sum"
+                    }
+                ]
+            },
+            "R3.A12 - Kits Educativos": {
+                total: 91640,
+                items: [
+                    {
+                        code: "SNR5A2.VISUAL",
+                        description: "Identidad Visual del Proyecto - Creación del universo visual y identidad del proyecto",
+                        amount: 8000,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A2.TEST",
+                        description: "Test de Visibilidad - Pruebas de elementos de comunicación del proyecto",
+                        amount: 8000,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A2.MATERIAL",
+                        description: "Material Didáctico - Preparación de material didáctico y currículos (gráficos incluidos)",
+                        amount: 12000,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A2.COMITES",
+                        description: "Movilización Comités - Convocatoria de comités técnicos y pedagógicos",
+                        amount: 240,
+                        details: "4 comités × 4 veces × €15"
+                    },
+                    {
+                        code: "SNR5A2.PROTO",
+                        description: "Impresión Prototipos - Impresión de prototipos de herramientas educativas",
+                        amount: 1500,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A2.SNACK",
+                        description: "Refrigerios Niños - Meriendas para niños durante pruebas",
+                        amount: 60,
+                        details: "1 Lump sum × 4 días × €15"
+                    },
+                    {
+                        code: "SNR5A2.PERDIEM1",
+                        description: "Viáticos Voluntarios Test - Compensación para voluntarios durante pruebas",
+                        amount: 600,
+                        details: "4 días × 15 voluntarios × €10"
+                    },
+                    {
+                        code: "SNR5A2.PERDIEM2",
+                        description: "Viáticos Chef Proyecto - Compensación para jefe de proyecto durante pruebas",
+                        amount: 80,
+                        details: "4 días × 1 persona × €20"
+                    },
+                    {
+                        code: "SNR5A2.FOOD",
+                        description: "Alimentación Capacitación - Comida para capacitación de voluntarios",
+                        amount: 425,
+                        details: "1 Lump sum × 17 personas × €25"
+                    },
+                    {
+                        code: "SNR5A2.PERDIEM3",
+                        description: "Viáticos Capacitación - Compensación para voluntarios en capacitación",
+                        amount: 150,
+                        details: "1 Lump sum × 15 voluntarios × €10"
+                    },
+                    {
+                        code: "SNR5A2.NOTEBOOK",
+                        description: "Material Educativo - Cuadernos y bolígrafos para voluntarios",
+                        amount: 225,
+                        details: "1 Lump sum × 15 voluntarios × €15"
+                    },
+                    {
+                        code: "SNR5A2.VISIB2",
+                        description: "Visibilidad Voluntarios - Elementos de identificación para voluntarios",
+                        amount: 330,
+                        details: "1 Lump sum × 15 voluntarios × €22"
+                    },
+                    {
+                        code: "SNR5A2.COFFEE3",
+                        description: "Coffee Break Presentación - Refrigerios para presentación a comités de gestión",
+                        amount: 30,
+                        details: "1 Lump sum × 2 personas × €15"
+                    },
+                    {
+                        code: "SNR5A2.PRODUCE",
+                        description: "Producción Final - Impresión y producción final de materiales educativos",
+                        amount: 19000,
+                        details: "1 Lump sum"
+                    }
+                ]
+            },
+            "R3.A13 - Capacitación Docente": {
+                total: 12650,
+                items: [
+                    {
+                        code: "SNR5A3.COFFEE1",
+                        description: "Coffee Break Directores - Presentación del proyecto a directores de escuelas",
+                        amount: 300,
+                        details: "1 Lump sum × 20 personas × €15"
+                    },
+                    {
+                        code: "SNR5A3.CONSUL",
+                        description: "Construcción de Contenido - Consultoría para construcción de contenidos educativos",
+                        amount: 8000,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A3.RENTAL",
+                        description: "Alquiler de Salas - Renta de espacios para capacitación con coffee incluido",
+                        amount: 1500,
+                        details: "1 formación × 1 package"
+                    },
+                    {
+                        code: "SNR5A3.FOOD",
+                        description: "Alimentación Capacitación - Comida para participantes en formación",
+                        amount: 840,
+                        details: "1 formación × 42 personas × €20"
+                    },
+                    {
+                        code: "SNR5A3.PRINT",
+                        description: "Impresión Documentos - Material impreso para capacitación",
+                        amount: 10,
+                        details: "1 formación × 1 package × €10"
+                    },
+                    {
+                        code: "SNR5A3.GOODIES",
+                        description: "Goodies Capacitación - Obsequios para participantes en formación",
+                        amount: 500,
+                        details: "1 formación × 1 package × €500"
+                    },
+                    {
+                        code: "SNR5A3.PERDIEM",
+                        description: "Viáticos Capacitación - Compensación para participantes",
+                        amount: 200,
+                        details: "1 Lump sum × 20 personas × €10"
+                    },
+                    {
+                        code: "SNR5A3.DISTRIB",
+                        description: "Distribución Kits - Gastos de viaje para distribución de kits educativos",
+                        amount: 100,
+                        details: "Gastos de referencia - viaje"
+                    },
+                    {
+                        code: "SNR5A3.MONITOR",
+                        description: "Monitoreo Escuelas - Seguimiento y apoyo en escuelas identificadas",
+                        amount: 600,
+                        details: "1 Lump sum × 10 días × €60"
+                    },
+                    {
+                        code: "SNR5A3.COFFEE2",
+                        description: "Coffee Break Monitoreo - Reuniones de seguimiento con maestros",
+                        amount: 300,
+                        details: "3 reuniones × 13 maestros × €15"
+                    },
+                    {
+                        code: "SNR5A3.COFFEE3",
+                        description: "Coffee Break Final - Reuniones de fin de año con maestros",
+                        amount: 300,
+                        details: "3 reuniones × 13 maestros × €15"
+                    }
+                ]
+            },
+            "R3.A14 - Capitalización": {
+                total: 14876,
+                items: [
+                    {
+                        code: "SNR5A4.PERDIEM1",
+                        description: "Viáticos Taller DRR - Compensación para taller de reducción de riesgos en escuela",
+                        amount: 152,
+                        details: "1 parte × 4 packages × €38"
+                    },
+                    {
+                        code: "SNR5A4.TAXI1",
+                        description: "Transporte Taller - Requerimientos de taxi para taller DRR",
+                        amount: 100,
+                        details: "1 parte × 2 viajes × €50"
+                    },
+                    {
+                        code: "SNR5A4.COFFEE1",
+                        description: "Coffee Break Balance - Reunión de balance con comité",
+                        amount: 180,
+                        details: "1 comité × 12 personas × €15"
+                    },
+                    {
+                        code: "SNR5A4.COFFEE2",
+                        description: "Coffee Break Escuela - Balance a nivel escolar con maestros y dirección",
+                        amount: 900,
+                        details: "3 reuniones × 20 personas × €15"
+                    },
+                    {
+                        code: "SNR5A4.COFFEE3",
+                        description: "Coffee Break Cierre - Ceremonia de cierre del proyecto",
+                        amount: 500,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A4.PRINT",
+                        description: "Impresiones Cierre - Material impreso para ceremonia de cierre",
+                        amount: 60,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A4.GOODIES",
+                        description: "Goodies Cierre - Obsequios para ceremonia de cierre",
+                        amount: 500,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A4.INFOG",
+                        description: "Infografía Resultados - Comunicación de resultados de actividades del proyecto",
+                        amount: 1500,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A4.VIDEO",
+                        description: "Video Testimonial - Película con testimonios de estudiantes",
+                        amount: 10000,
+                        details: "1 Lump sum"
+                    },
+                    {
+                        code: "SNR5A4.PERDIEM2",
+                        description: "Viáticos Taller Final - Compensación para taller de fin de proyecto",
+                        amount: 684,
+                        details: "3 personas × 6 días × €38"
+                    },
+                    {
+                        code: "SNR5A4.TAXI2",
+                        description: "Transporte Taller Final - Requerimientos de taxi para taller final",
+                        amount: 300,
+                        details: "3 personas × 2 packages × €50"
+                    }
+                ]
             }
-            
-            // Ajustar ancho de columnas
-            ws['!cols'] = [
-                { width: 15 }, { width: 50 }, { width: 15 }, 
-                { width: 15 }, { width: 15 }, { width: 12 }
-            ];
+        };
 
-            XLSX.utils.book_append_sheet(wb, ws, "Resumen Presupuestario");
-            
-            // Crear hoja de gastos detallados
-            const expenseData = [
-                ['REGISTRO DETALLADO DE GASTOS'],
-                [''],
-                ['Código', 'Partida', 'Fecha', 'Descripción Gasto', 'Monto']
-            ];
-
-            budgetData.forEach(item => {
-                if (item.expenses.length > 0) {
-                    item.expenses.forEach(expense => {
-                        expenseData.push([
-                            item.code,
-                            item.description,
-                            expense.date,
-                            expense.description,
-                            formatCurrencyPlain(expense.amount)
-                        ]);
-                    });
-                }
-            });
-
-            const wsExpenses = XLSX.utils.aoa_to_sheet(expenseData);
-            wsExpenses['!cols'] = [
-                { width: 15 }, { width: 40 }, { width: 12 }, 
-                { width: 30 }, { width: 15 }
-            ];
-
-            XLSX.utils.book_append_sheet(wb, wsExpenses, "Gastos Detallados");
-            
-            // Generar archivo
-            const fileName = `Presupuesto_CruzRoja_${new Date().toISOString().split('T')[0]}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-        }
-
-        // Exportar a PDF
-        function exportToPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape para más espacio
-            
-            // Header
-            doc.setFillColor(220, 38, 38);
-            doc.rect(0, 0, 297, 30, 'F');
-            
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(20);
-            doc.setFont(undefined, 'bold');
-            doc.text('SISTEMA DE GESTIÓN PRESUPUESTARIA', 148, 15, { align: 'center' });
-            doc.setFontSize(14);
-            doc.text('Cruz Roja Dominicana', 148, 25, { align: 'center' });
-            
-            // Información general
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-            doc.text(`Fecha: ${new Date().toLocaleDateString('es-DO')}`, 20, 45);
-            doc.text(`Moneda: ${isEUR ? 'EUR (€)' : 'RD$ (Pesos Dominicanos)'}`, 20, 52);
-            doc.text(`Administrador: Jesús D. Ramírez`, 20, 59);
-            
-            // Resumen financiero
-            const totalBudget = budgetData.reduce((sum, item) => sum + item.budget, 0);
-            const totalSpent = budgetData.reduce((sum, item) => sum + item.spent, 0);
-            const totalRemaining = totalBudget - totalSpent;
-            
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text('RESUMEN FINANCIERO', 20, 75);
-            
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text(`Presupuesto Total: ${formatCurrencyPlain(totalBudget)}`, 20, 85);
-            doc.text(`Total Gastado: ${formatCurrencyPlain(totalSpent)}`, 20, 92);
-            doc.text(`Disponible: ${formatCurrencyPlain(totalRemaining)}`, 20, 99);
-            
-            // Tabla de partidas
-            const tableData = [];
-            let currentCategory = '';
-            
-            budgetData.forEach(item => {
-                if (item.category && item.category !== currentCategory) {
-                    tableData.push([
-                        { content: item.category, styles: { fillColor: [254, 202, 202], fontStyle: 'bold' } },
-                        '', '', '', '', ''
-                    ]);
-                    currentCategory = item.category;
-                }
-                
-                const remaining = item.budget - item.spent;
-                const percentage = item.budget > 0 ? ((item.spent / item.budget) * 100).toFixed(1) : '0.0';
-                
-                tableData.push([
-                    item.code,
-                    item.description.length > 40 ? item.description.substring(0, 40) + '...' : item.description,
-                    formatCurrencyPlain(item.budget),
-                    formatCurrencyPlain(item.spent),
-                    formatCurrencyPlain(remaining),
-                    percentage + '%'
-                ]);
-            });
-            
-            doc.autoTable({
-                head: [['Código', 'Descripción', 'Presupuesto', 'Gastado', 'Restante', '% Ejec.']],
-                body: tableData,
-                startY: 110,
-                theme: 'striped',
-                headStyles: {
-                    fillColor: [220, 38, 38],
-                    textColor: [255, 255, 255],
-                    fontSize: 9,
-                    fontStyle: 'bold'
-                },
-                bodyStyles: {
-                    fontSize: 8
-                },
-                columnStyles: {
-                    0: { cellWidth: 25 },
-                    1: { cellWidth: 80 },
-                    2: { cellWidth: 30 },
-                    3: { cellWidth: 30 },
-                    4: { cellWidth: 30 },
-                    5: { cellWidth: 20 }
-                }
-            });
-            
-            // Footer
-            const pageCount = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.setTextColor(128, 128, 128);
-                doc.text(`Software Presupuestario hecho por Jesús D. Ramírez (Administrador)`, 148, 200, { align: 'center' });
-                doc.text(`Página ${i} de ${pageCount}`, 275, 200);
-            }
-            
-            // Guardar
-            const fileName = `Presupuesto_CruzRoja_${new Date().toISOString().split('T')[0]}.pdf`;
-            doc.save(fileName);
-        }
-
-        // Formatear moneda
         function formatCurrency(amount) {
-            if (isEUR) {
-                return new Intl.NumberFormat('es-ES', {
-                    style: 'currency',
-                    currency: 'EUR'
-                }).format(amount);
+            if (currentCurrency === 'EUR') {
+                return `€${amount.toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             } else {
-                return new Intl.NumberFormat('es-DO', {
-                    style: 'currency',
-                    currency: 'DOP'
-                }).format(amount * EUR_TO_DOP);
+                return `RD${(amount * EXCHANGE_RATE).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             }
         }
 
-        // Función auxiliar para formatear moneda sin símbolos HTML
-        function formatCurrencyPlain(amount) {
-            if (isEUR) {
-                return new Intl.NumberFormat('es-ES', {
-                    style: 'currency',
-                    currency: 'EUR'
-                }).format(amount);
-            } else {
-                return new Intl.NumberFormat('es-DO', {
-                    style: 'currency',
-                    currency: 'DOP'
-                }).format(amount * EUR_TO_DOP);
-            }
+        function setCurrency(currency) {
+            currentCurrency = currency;
+            document.querySelectorAll('.currency-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderBudget();
         }
 
-        // Alternar moneda
-        function toggleCurrency() {
-            isEUR = !isEUR;
-            document.getElementById('currency-btn').textContent = isEUR ? 'Cambiar a RD$' : 'Cambiar a EUR';
-            renderTable();
-            updateSummary();
+        function calculateSpentAmount(itemKey) {
+            const itemExpenses = expenses[itemKey] || [];
+            return itemExpenses.reduce((total, expense) => total + expense.amount, 0);
         }
 
-        // Agregar gasto
-        function addExpense(index) {
-            const description = prompt('Descripción del gasto:');
-            if (!description) return;
+        function calculateProgress(budgetAmount, spentAmount) {
+            return Math.min((spentAmount / budgetAmount) * 100, 100);
+        }
+
+        function addExpense(itemKey, budgetAmount) {
+            const descriptionInput = document.getElementById(`desc-${itemKey}`);
+            const amountInput = document.getElementById(`amount-${itemKey}`);
             
-            const amountStr = prompt('Monto del gasto:');
-            if (!amountStr) return;
-            
-            const amount = parseFloat(amountStr);
-            if (isNaN(amount) || amount <= 0) {
-                alert('Por favor ingrese un monto válido');
+            const description = descriptionInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+
+            if (!description || !amount || amount <= 0) {
+                alert('Por favor, complete todos los campos correctamente.');
                 return;
             }
 
-            const expense = {
+            const currentSpent = calculateSpentAmount(itemKey);
+            if (currentSpent + amount > budgetAmount) {
+                if (!confirm(`⚠️ ALERTA: Este gasto (${formatCurrency(amount)}) excederá el presupuesto asignado.\n\nPresupuesto: ${formatCurrency(budgetAmount)}\nGastado: ${formatCurrency(currentSpent)}\nDisponible: ${formatCurrency(budgetAmount - currentSpent)}\n\n¿Desea continuar?`)) {
+                    return;
+                }
+            }
+
+            if (!expenses[itemKey]) {
+                expenses[itemKey] = [];
+            }
+
+            expenses[itemKey].push({
                 description: description,
                 amount: amount,
-                date: new Date().toISOString().split('T')[0]
-            };
+                date: new Date().toLocaleDateString('es-ES'),
+                timestamp: Date.now()
+            });
 
-            budgetData[index].expenses.push(expense);
-            budgetData[index].spent += amount;
+            localStorage.setItem('budgetExpenses', JSON.stringify(expenses));
             
-            saveData();
-            renderTable();
-            updateSummary();
+            descriptionInput.value = '';
+            amountInput.value = '';
+            
+            renderBudget();
         }
 
-        // Actualizar resumen
-        function updateSummary() {
-            const totalBudget = budgetData.reduce((sum, item) => sum + item.budget, 0);
-            const totalSpent = budgetData.reduce((sum, item) => sum + item.spent, 0);
-            const totalRemaining = totalBudget - totalSpent;
+        function deleteExpense(itemKey, expenseIndex) {
+            if (confirm('¿Está seguro de que desea eliminar este registro de gasto?')) {
+                expenses[itemKey].splice(expenseIndex, 1);
 
-            document.getElementById('total-budget').textContent = formatCurrency(totalBudget);
-            document.getElementById('total-spent').textContent = formatCurrency(totalSpent);
-            document.getElementById('total-remaining').textContent = formatCurrency(totalRemaining);
-        }
-
-        // Renderizar tabla
-        function renderTable() {
-            const tbody = document.getElementById('budgetBody');
-            tbody.innerHTML = '';
-
-            budgetData.forEach((item, index) => {
-                const row = document.createElement('tr');
-                
-                if (item.category) {
-                    const categoryRow = document.createElement('tr');
-                    categoryRow.innerHTML = `<td colspan="7" class="category-header">${item.category}</td>`;
-                    tbody.appendChild(categoryRow);
+                if (expenses[itemKey].length === 0) {
+                    delete expenses[itemKey];
                 }
 
-                const remaining = item.budget - item.spent;
-                const percentage = item.budget > 0 ? (item.spent / item.budget) * 100 : 0;
-                
-                row.innerHTML = `
-                    <td><span class="code">${item.code}</span></td>
-                    <td>${item.description}</td>
-                    <td class="amount-cell">${formatCurrency(item.budget)}</td>
-                    <td class="amount-cell">${formatCurrency(item.spent)}</td>
-                    <td class="amount-cell remaining ${remaining >= 0 ? 'positive' : 'negative'}">${formatCurrency(remaining)}</td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill ${percentage > 100 ? 'over' : ''}" style="width: ${Math.min(percentage, 100)}%"></div>
-                        </div>
-                        <small>${percentage.toFixed(1)}%</small>
-                    </td>
-                    <td>
-                        <button class="add-expense" onclick="addExpense(${index})">+ Gasto</button>
-                        ${item.expenses.length > 0 ? `<div class="expense-log">
-                            ${item.expenses.map(exp => `
-                                <div class="expense-item">
-                                    ${exp.date}: ${exp.description} - ${formatCurrency(exp.amount)}
-                                </div>
-                            `).join('')}
-                        </div>` : ''}
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+                localStorage.setItem('budgetExpenses', JSON.stringify(expenses));
+                renderBudget();
+            }
         }
 
-        // Inicializar
+        function renderBudget() {
+            const budgetGrid = document.getElementById('budgetGrid');
+            const summaryStats = document.getElementById('summaryStats');
+            
+            let totalBudget = 0;
+            let totalSpent = 0;
+            let totalRemaining = 0;
+
+            budgetGrid.innerHTML = '';
+            
+            Object.keys(budgetData).forEach(categoryName => {
+                const category = budgetData[categoryName];
+                let categorySpent = 0;
+                
+                category.items.forEach(item => {
+                    const itemKey = item.code;
+                    const spent = calculateSpentAmount(itemKey);
+                    categorySpent += spent;
+                    totalSpent += spent;
+                });
+                
+                totalBudget += category.total;
+                totalRemaining += (category.total - categorySpent);
+
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'budget-category';
+                
+                let itemsHtml = '';
+                category.items.forEach(item => {
+                    const itemKey = item.code;
+                    const spentAmount = calculateSpentAmount(itemKey);
+                    const remainingAmount = item.amount - spentAmount;
+                    const progress = calculateProgress(item.amount, spentAmount);
+                    const itemExpenses = expenses[itemKey] || [];
+
+                    let expensesHtml = '';
+                    itemExpenses.forEach((expense, index) => {
+                        expensesHtml += `
+                            <div class="expense-item">
+                                <div class="expense-details">
+                                    <div class="expense-description">${expense.description}</div>
+                                    <div class="expense-date">${expense.date}</div>
+                                </div>
+                                <div class="expense-amount">-${formatCurrency(expense.amount)}</div>
+                                <button class="delete-expense-btn" onclick="deleteExpense('${itemKey}', ${index})">🗑️</button>
+                            </div>
+                        `;
+                    });
+
+                    itemsHtml += `
+                        <div class="budget-item">
+                            <div class="item-header">
+                                <span class="item-code">${item.code}</span>
+                                <span class="item-amount">${formatCurrency(item.amount)}</span>
+                            </div>
+                            <div class="item-description">${item.description}</div>
+                            <div class="item-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${progress}%"></div>
+                                </div>
+                                <div class="progress-text">
+                                    Gastado: ${formatCurrency(spentAmount)} | Disponible: ${formatCurrency(remainingAmount)} | ${progress.toFixed(1)}%
+                                </div>
+                            </div>
+                            <div class="expense-form">
+                                <input type="text" class="expense-input" id="desc-${itemKey}" placeholder="Descripción del gasto...">
+                                <input type="number" class="expense-input" id="amount-${itemKey}" placeholder="Monto" step="0.01" min="0">
+                                <button class="add-expense-btn" onclick="addExpense('${itemKey}', ${item.amount})">💰 Registrar</button>
+                            </div>
+                            ${expensesHtml ? `<div class="expenses-list">${expensesHtml}</div>` : ''}
+                        </div>
+                    `;
+                });
+
+                categoryDiv.innerHTML = `
+                    <div class="category-header">
+                        <div class="category-title">${categoryName}</div>
+                        <div class="category-total">${formatCurrency(category.total)}</div>
+                    </div>
+                    <div class="budget-items">
+                        ${itemsHtml}
+                    </div>
+                `;
+
+                budgetGrid.appendChild(categoryDiv);
+            });
+
+            // Update summary statistics
+            const executionRate = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+            
+            summaryStats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${formatCurrency(totalBudget)}</div>
+                    <div class="stat-label">Presupuesto Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${formatCurrency(totalSpent)}</div>
+                    <div class="stat-label">Total Ejecutado</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${formatCurrency(totalRemaining)}</div>
+                    <div class="stat-label">Saldo Disponible</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${executionRate.toFixed(1)}%</div>
+                    <div class="stat-label">Tasa de Ejecución</div>
+                </div>
+            `;
+        }
+
+        function exportToExcel() {
+            const workbook = XLSX.utils.book_new();
+            
+            // Create summary sheet
+            const summaryData = [
+                ['SISTEMA DE GESTIÓN PRESUPUESTARIA - CRUZ ROJA DOMINICANA'],
+                ['Generado el:', new Date().toLocaleDateString('es-ES')],
+                ['Moneda:', currentCurrency],
+                [''],
+                ['RESUMEN EJECUTIVO'],
+                ['Concepto', 'Monto'],
+            ];
+
+            let totalBudget = 0;
+            let totalSpent = 0;
+
+            Object.keys(budgetData).forEach(categoryName => {
+                const category = budgetData[categoryName];
+                let categorySpent = 0;
+                
+                category.items.forEach(item => {
+                    const spent = calculateSpentAmount(item.code);
+                    categorySpent += spent;
+                });
+                
+                totalBudget += category.total;
+                totalSpent += categorySpent;
+            });
+
+            summaryData.push(
+                ['Presupuesto Total', formatCurrency(totalBudget)],
+                ['Total Ejecutado', formatCurrency(totalSpent)],
+                ['Saldo Disponible', formatCurrency(totalBudget - totalSpent)],
+                ['Tasa de Ejecución', `${((totalSpent / totalBudget) * 100).toFixed(2)}%`]
+            );
+
+            const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(workbook, summarySheet, 'Resumen');
+
+            // Create detailed sheet
+            const detailData = [
+                ['Código', 'Descripción', 'Presupuesto', 'Gastado', 'Disponible', 'Progreso %']
+            ];
+
+            Object.keys(budgetData).forEach(categoryName => {
+                detailData.push([categoryName.toUpperCase(), '', '', '', '', '']);
+                
+                budgetData[categoryName].items.forEach(item => {
+                    const spent = calculateSpentAmount(item.code);
+                    const remaining = item.amount - spent;
+                    const progress = calculateProgress(item.amount, spent);
+                    
+                    detailData.push([
+                        item.code,
+                        item.description,
+                        item.amount,
+                        spent,
+                        remaining,
+                        `${progress.toFixed(1)}%`
+                    ]);
+                });
+                detailData.push(['', '', '', '', '', '']); // Empty row between categories
+            });
+
+            const detailSheet = XLSX.utils.aoa_to_sheet(detailData);
+            XLSX.utils.book_append_sheet(workbook, detailSheet, 'Detalle Presupuestario');
+
+            // Create expenses sheet
+            const expensesData = [
+                ['Código', 'Descripción Gasto', 'Monto', 'Fecha']
+            ];
+
+            Object.keys(expenses).forEach(itemKey => {
+                expenses[itemKey].forEach(expense => {
+                    expensesData.push([
+                        itemKey,
+                        expense.description,
+                        expense.amount,
+                        expense.date
+                    ]);
+                });
+            });
+
+            const expensesSheet = XLSX.utils.aoa_to_sheet(expensesData);
+            XLSX.utils.book_append_sheet(workbook, expensesSheet, 'Registro de Gastos');
+
+            XLSX.writeFile(workbook, `Presupuesto_CruzRoja_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Header
+            doc.setFontSize(18);
+            doc.setTextColor(220, 20, 60);
+            doc.text('CRUZ ROJA DOMINICANA', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Sistema de Gestión Presupuestaria', 105, 30, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, 20, 45);
+            doc.text(`Moneda: ${currentCurrency}`, 20, 52);
+
+            let yPosition = 65;
+            
+            // Summary statistics
+            let totalBudget = 0;
+            let totalSpent = 0;
+
+            Object.keys(budgetData).forEach(categoryName => {
+                const category = budgetData[categoryName];
+                let categorySpent = 0;
+                
+                category.items.forEach(item => {
+                    const spent = calculateSpentAmount(item.code);
+                    categorySpent += spent;
+                });
+                
+                totalBudget += category.total;
+                totalSpent += categorySpent;
+            });
+
+            doc.setFontSize(12);
+            doc.setTextColor(220, 20, 60);
+            doc.text('RESUMEN EJECUTIVO', 20, yPosition);
+            yPosition += 10;
+
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Presupuesto Total: ${formatCurrency(totalBudget)}`, 20, yPosition);
+            yPosition += 7;
+            doc.text(`Total Ejecutado: ${formatCurrency(totalSpent)}`, 20, yPosition);
+            yPosition += 7;
+            doc.text(`Saldo Disponible: ${formatCurrency(totalBudget - totalSpent)}`, 20, yPosition);
+            yPosition += 7;
+            doc.text(`Tasa de Ejecución: ${((totalSpent / totalBudget) * 100).toFixed(2)}%`, 20, yPosition);
+            yPosition += 15;
+
+            // Categories summary
+            Object.keys(budgetData).forEach(categoryName => {
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+
+                const category = budgetData[categoryName];
+                let categorySpent = 0;
+                
+                category.items.forEach(item => {
+                    const spent = calculateSpentAmount(item.code);
+                    categorySpent += spent;
+                });
+
+                doc.setFontSize(11);
+                doc.setTextColor(220, 20, 60);
+                doc.text(categoryName.toUpperCase(), 20, yPosition);
+                yPosition += 8;
+
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Presupuesto: ${formatCurrency(category.total)} | Ejecutado: ${formatCurrency(categorySpent)}`, 25, yPosition);
+                yPosition += 12;
+            });
+
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(128, 128, 128);
+            doc.text('POWERED BY DGPC · DAWARLY GESTIÓN PRESUPUESTARIA CONSULTING', 105, 285, { align: 'center' });
+
+            doc.save(`Presupuesto_CruzRoja_${new Date().toISOString().split('T')[0]}.pdf`);
+        }
+
+        // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            loadData();
-            renderTable();
-            updateSummary();
+            renderBudget();
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                exportToExcel();
+            }
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                exportToPDF();
+            }
         });
     </script>
 </body>
