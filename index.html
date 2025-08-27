@@ -434,7 +434,7 @@
         let currentCurrency = 'EUR';
         let expenses = JSON.parse(localStorage.getItem('budgetExpenses')) || {};
 
-        // Complete budget data structure
+        // Complete budget data structure with corrected totals
         const budgetData = {
             "Recursos Humanos": {
                 total: 44000,
@@ -483,7 +483,7 @@
                 ]
             },
             "R0 - Comunicación y Obligaciones": {
-                total: 200,
+                total: 2200,
                 items: [
                     {
                         code: "SNR0A0.CARGO",
@@ -776,6 +776,17 @@
                         details: "3 personas × 2 packages × €50"
                     }
                 ]
+            },
+            "Costos Indirectos": {
+                total: 6345,
+                items: [
+                    {
+                        code: "INDIRECT",
+                        description: "Costos Indirectos 3% - Gastos administrativos y de gestión indirecta del proyecto",
+                        amount: 6345,
+                        details: "3% sobre el total de actividades directas"
+                    }
+                ]
             }
         };
 
@@ -970,6 +981,7 @@
             // Create summary sheet
             const summaryData = [
                 ['SISTEMA DE GESTIÓN PRESUPUESTARIA - CRUZ ROJA DOMINICANA'],
+                ['PROYECTO READY 360° - JESUS D. RAMIREZ'],
                 ['Generado el:', new Date().toLocaleDateString('es-ES')],
                 ['Moneda:', currentCurrency],
                 [''],
@@ -994,38 +1006,51 @@
             });
 
             summaryData.push(
-                ['Presupuesto Total', formatCurrency(totalBudget)],
-                ['Total Ejecutado', formatCurrency(totalSpent)],
-                ['Saldo Disponible', formatCurrency(totalBudget - totalSpent)],
-                ['Tasa de Ejecución', `${((totalSpent / totalBudget) * 100).toFixed(2)}%`]
+                ['Presupuesto Total', totalBudget],
+                ['Total Ejecutado', totalSpent],
+                ['Saldo Disponible', totalBudget - totalSpent],
+                ['Tasa de Ejecución', `${((totalSpent / totalBudget) * 100).toFixed(2)}%`],
+                [''],
+                ['DETALLE POR CATEGORÍAS']
             );
+
+            Object.keys(budgetData).forEach(categoryName => {
+                const category = budgetData[categoryName];
+                let categorySpent = 0;
+                
+                category.items.forEach(item => {
+                    const spent = calculateSpentAmount(item.code);
+                    categorySpent += spent;
+                });
+
+                summaryData.push([categoryName, category.total, categorySpent, category.total - categorySpent]);
+            });
 
             const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
             XLSX.utils.book_append_sheet(workbook, summarySheet, 'Resumen');
 
             // Create detailed sheet
             const detailData = [
-                ['Código', 'Descripción', 'Presupuesto', 'Gastado', 'Disponible', 'Progreso %']
+                ['Categoría', 'Código', 'Descripción', 'Presupuesto', 'Gastado', 'Disponible', 'Progreso %', 'Detalles']
             ];
 
             Object.keys(budgetData).forEach(categoryName => {
-                detailData.push([categoryName.toUpperCase(), '', '', '', '', '']);
-                
                 budgetData[categoryName].items.forEach(item => {
                     const spent = calculateSpentAmount(item.code);
                     const remaining = item.amount - spent;
                     const progress = calculateProgress(item.amount, spent);
                     
                     detailData.push([
+                        categoryName,
                         item.code,
                         item.description,
                         item.amount,
                         spent,
                         remaining,
-                        `${progress.toFixed(1)}%`
+                        `${progress.toFixed(1)}%`,
+                        item.details
                     ]);
                 });
-                detailData.push(['', '', '', '', '', '']); // Empty row between categories
             });
 
             const detailSheet = XLSX.utils.aoa_to_sheet(detailData);
@@ -1033,24 +1058,31 @@
 
             // Create expenses sheet
             const expensesData = [
-                ['Código', 'Descripción Gasto', 'Monto', 'Fecha']
+                ['Categoría', 'Código', 'Descripción Presupuesto', 'Descripción Gasto', 'Monto', 'Fecha']
             ];
 
-            Object.keys(expenses).forEach(itemKey => {
-                expenses[itemKey].forEach(expense => {
-                    expensesData.push([
-                        itemKey,
-                        expense.description,
-                        expense.amount,
-                        expense.date
-                    ]);
+            Object.keys(budgetData).forEach(categoryName => {
+                budgetData[categoryName].items.forEach(item => {
+                    const itemExpenses = expenses[item.code] || [];
+                    if (itemExpenses.length > 0) {
+                        itemExpenses.forEach(expense => {
+                            expensesData.push([
+                                categoryName,
+                                item.code,
+                                item.description,
+                                expense.description,
+                                expense.amount,
+                                expense.date
+                            ]);
+                        });
+                    }
                 });
             });
 
             const expensesSheet = XLSX.utils.aoa_to_sheet(expensesData);
             XLSX.utils.book_append_sheet(workbook, expensesSheet, 'Registro de Gastos');
 
-            XLSX.writeFile(workbook, `Presupuesto_CruzRoja_${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.writeFile(workbook, `Presupuesto_CruzRoja_READY360_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
         function exportToPDF() {
@@ -1058,19 +1090,21 @@
             const doc = new jsPDF();
             
             // Header
-            doc.setFontSize(18);
+            doc.setFontSize(16);
             doc.setTextColor(220, 20, 60);
-            doc.text('CRUZ ROJA DOMINICANA', 105, 20, { align: 'center' });
+            doc.text('CRUZ ROJA DOMINICANA', 105, 15, { align: 'center' });
             
-            doc.setFontSize(14);
+            doc.setFontSize(12);
             doc.setTextColor(0, 0, 0);
-            doc.text('Sistema de Gestión Presupuestaria', 105, 30, { align: 'center' });
+            doc.text('SISTEMA DE GESTIÓN PRESUPUESTARIA', 105, 25, { align: 'center' });
+            doc.text('PROYECTO READY 360°', 105, 32, { align: 'center' });
             
             doc.setFontSize(10);
-            doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, 20, 45);
-            doc.text(`Moneda: ${currentCurrency}`, 20, 52);
+            doc.text('JESUS D. RAMIREZ - ADMINISTRADOR DEL PROYECTO', 105, 39, { align: 'center' });
+            doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, 20, 50);
+            doc.text(`Moneda: ${currentCurrency}`, 20, 57);
 
-            let yPosition = 65;
+            let yPosition = 70;
             
             // Summary statistics
             let totalBudget = 0;
@@ -1089,23 +1123,36 @@
                 totalSpent += categorySpent;
             });
 
-            doc.setFontSize(12);
+            doc.setFontSize(14);
             doc.setTextColor(220, 20, 60);
             doc.text('RESUMEN EJECUTIVO', 20, yPosition);
-            yPosition += 10;
+            yPosition += 12;
 
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
-            doc.text(`Presupuesto Total: ${formatCurrency(totalBudget)}`, 20, yPosition);
-            yPosition += 7;
-            doc.text(`Total Ejecutado: ${formatCurrency(totalSpent)}`, 20, yPosition);
-            yPosition += 7;
-            doc.text(`Saldo Disponible: ${formatCurrency(totalBudget - totalSpent)}`, 20, yPosition);
-            yPosition += 7;
-            doc.text(`Tasa de Ejecución: ${((totalSpent / totalBudget) * 100).toFixed(2)}%`, 20, yPosition);
-            yPosition += 15;
+            
+            // Summary table
+            const summaryTable = [
+                ['Presupuesto Total:', formatCurrency(totalBudget)],
+                ['Total Ejecutado:', formatCurrency(totalSpent)],
+                ['Saldo Disponible:', formatCurrency(totalBudget - totalSpent)],
+                ['Tasa de Ejecución:', `${((totalSpent / totalBudget) * 100).toFixed(2)}%`]
+            ];
+
+            summaryTable.forEach(row => {
+                doc.text(row[0], 25, yPosition);
+                doc.text(row[1], 100, yPosition);
+                yPosition += 8;
+            });
+
+            yPosition += 10;
 
             // Categories summary
+            doc.setFontSize(12);
+            doc.setTextColor(220, 20, 60);
+            doc.text('RESUMEN POR CATEGORÍAS', 20, yPosition);
+            yPosition += 12;
+
             Object.keys(budgetData).forEach(categoryName => {
                 if (yPosition > 250) {
                     doc.addPage();
@@ -1120,15 +1167,17 @@
                     categorySpent += spent;
                 });
 
-                doc.setFontSize(11);
+                doc.setFontSize(10);
                 doc.setTextColor(220, 20, 60);
-                doc.text(categoryName.toUpperCase(), 20, yPosition);
-                yPosition += 8;
+                doc.text(categoryName.toUpperCase(), 25, yPosition);
+                yPosition += 6;
 
                 doc.setFontSize(9);
                 doc.setTextColor(0, 0, 0);
-                doc.text(`Presupuesto: ${formatCurrency(category.total)} | Ejecutado: ${formatCurrency(categorySpent)}`, 25, yPosition);
-                yPosition += 12;
+                doc.text(`Presupuesto: ${formatCurrency(category.total)}`, 30, yPosition);
+                doc.text(`Ejecutado: ${formatCurrency(categorySpent)}`, 100, yPosition);
+                doc.text(`Disponible: ${formatCurrency(category.total - categorySpent)}`, 150, yPosition);
+                yPosition += 10;
             });
 
             // Footer
@@ -1136,7 +1185,7 @@
             doc.setTextColor(128, 128, 128);
             doc.text('POWERED BY DGPC · DAWARLY GESTIÓN PRESUPUESTARIA CONSULTING', 105, 285, { align: 'center' });
 
-            doc.save(`Presupuesto_CruzRoja_${new Date().toISOString().split('T')[0]}.pdf`);
+            doc.save(`Presupuesto_CruzRoja_READY360_${new Date().toISOString().split('T')[0]}.pdf`);
         }
 
         // Initialize the application
